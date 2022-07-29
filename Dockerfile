@@ -6,9 +6,9 @@ RUN mkdir /app
 
 COPY requirements.txt /app
 
-COPY *.py /app
-COPY *.json /app
-COPY *.sav /app
+COPY *.py /app/
+COPY *.json /app/
+COPY *.sav /app/
 
 
 WORKDIR /app
