@@ -32,6 +32,9 @@ pl = joblib.load("pipeline.sav")
 with open("null_dict.json") as json_file:
     null_dict = json.load(json_file)
 
+with open("iqr_dict.json") as json_file:
+    iqr_dict = json.load(json_file)
+
 ord_cols = ["A_PARA", "A_GESTA", "EUTOCITO_ANTERIOR"]
 int_cols = [
     "IDADE_MATERNA",
@@ -84,7 +87,6 @@ cols = [
 
 network_cols = [
     "IDADE_MATERNA",
-    "GS",
     "PESO_INICIAL",
     "IMC",
     "A_PARA",
@@ -106,6 +108,33 @@ network_cols = [
     "SEMANAS_GESTACAO_PARTO",
     "GRUPO_ROBSON",
 ]
+
+
+def get_iqr_score(row):
+    score = 0
+
+    opt = jsonable_encoder(row)
+    for c in int_cols:
+        print(c, iqr_dict[c], opt[c])
+        x = opt[c]
+        iqr = iqr_dict[c]["iqr"]
+        q3 = iqr_dict[c]["q3"]
+        q1 = iqr_dict[c]["q1"]
+
+        if not x == np.nan:
+            ll_threshold = q1 - iqr * 3
+            uu_threshold = q3 + iqr * 3
+            l_threshold = q1 - iqr * 1.5
+            u_threshold = q3 + iqr * 1.5
+            if x < ll_threshold or x > uu_threshold:
+                print("out of range")
+                score += 2
+            elif x < l_threshold or x > u_threshold:
+                print("near range")
+                score += 1
+            else:
+                score += 0
+    return score
 
 
 def get_missing_score(row):
@@ -180,11 +209,13 @@ def get_correctness_score(row, model):
         #  print(truth, pred)
         if truth == pred.replace("_", "."):
             score += perc.max() * 100
+    print(score)
     return score / len(cols)
 
 
-def calculate_score(missing_score, correctness_score):
+def calculate_score(missing_score, correctness_score, iqr_score):
     print("m", missing_score)
     print("c", correctness_score)
+    print("iqr", iqr_score)
 
-    return round((missing_score + correctness_score) / 2, 2)
+    return round((missing_score + correctness_score + iqr_score) / 3, 2)

@@ -65,8 +65,9 @@ async def get_predict_easy(row: Row):
 
     missing_score = get_missing_score(row)
     correctness_score = get_correctness_score(row, model)
-    print(missing_score)
-    print(correctness_score)
-    final_score = calculate_score(missing_score, correctness_score)
+    iqr_score = get_iqr_score(row)  # ??
+    # print(missing_score)
+    # print(correctness_score)
+    final_score = calculate_score(missing_score, correctness_score, iqr_score)
 
     return final_score
