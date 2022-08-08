@@ -26,106 +26,106 @@ from typing import List
 
 
 class Row(BaseModel):
-    IDADE_MATERNA: Union[int, None] = np.nan
-    GS: Union[str, None] = np.nan
-    PESO_INICIAL: Union[float, None] = np.nan
-    IMC: Union[float, None] = np.nan
-    A_PARA: Union[float, None] = np.nan
-    A_GESTA: Union[int, None] = np.nan
-    EUTOCITO_ANTERIOR: Union[int, None] = np.nan
-    TIPO_GRAVIDEZ: Union[str, None] = np.nan
-    VIGIADA: Union[str, None] = np.nan
-    NUMERO_CONSULTAS_PRE_NATAL: Union[int, None] = np.nan
-    VIGIADA_CENTRO_SAUDE: Union[str, None] = np.nan
-    VIGIADA_NESTE_HOSPITAL: Union[str, None] = np.nan
-    ESTIMATIVA_PESO_ECO_30: Union[float, None] = np.nan
-    APRESENTACAO_30: Union[str, None] = np.nan
-    APRESENTACAO_ADMISSAO: Union[str, None] = np.nan
-    IDADE_GESTACIONAL_ADMISSAO: Union[int, None] = np.nan
-    TRAB_PARTO_ENTRADA_ESPONTANEO: Union[str, None] = np.nan
-    TIPO_PARTO: Union[str, None] = np.nan
-    APRESENTACAO_NO_PARTO: Union[str, None] = np.nan
-    TRAB_PARTO_NO_PARTO: Union[str, None] = np.nan
-    SEMANAS_GESTACAO_PARTO: Union[int, None] = np.nan
-    GRUPO_ROBSON: Union[str, None] = np.nan
+    IDADE_MATERNA: Union[int, None] = None
+    GS: Union[str, None] = None
+    PESO_INICIAL: Union[float, None] = None
+    IMC: Union[float, None] = None
+    A_PARA: Union[float, None] = None
+    A_GESTA: Union[int, None] = None
+    EUTOCITO_ANTERIOR: Union[int, None] = None
+    TIPO_GRAVIDEZ: Union[str, None] = None
+    VIGIADA: Union[str, None] = None
+    NUMERO_CONSULTAS_PRE_NATAL: Union[int, None] = None
+    VIGIADA_CENTRO_SAUDE: Union[str, None] = None
+    VIGIADA_NESTE_HOSPITAL: Union[str, None] = None
+    ESTIMATIVA_PESO_ECO_30: Union[float, None] = None
+    APRESENTACAO_30: Union[str, None] = None
+    APRESENTACAO_ADMISSAO: Union[str, None] = None
+    IDADE_GESTACIONAL_ADMISSAO: Union[int, None] = None
+    TRAB_PARTO_ENTRADA_ESPONTANEO: Union[str, None] = None
+    TIPO_PARTO: Union[str, None] = None
+    APRESENTACAO_NO_PARTO: Union[str, None] = None
+    TRAB_PARTO_NO_PARTO: Union[str, None] = None
+    SEMANAS_GESTACAO_PARTO: Union[int, None] = None
+    GRUPO_ROBSON: Union[str, None] = None
 
-    IDENTIFICADOR: Union[str, None] = np.nan
-    DATA_PARTO: Union[str, None] = np.nan
-    PESO_ADMISSAO_INTERNAMENTO: Union[str, None] = np.nan
-    CIGARROS: Union[str, None] = np.nan
-    ALCOOL: Union[str, None] = np.nan
-    ESTUPEFACIENTES: Union[str, None] = np.nan
-    VENTOSAS_ANTERIOR: Union[float, None] = np.nan
-    FORCEPS_ANTERIOR: Union[float, None] = np.nan
-    CESARIANAS_ANTERIOR: Union[float, None] = np.nan
-    CESARIANAS_MOTIVO_ANTERIOR: Union[str, None] = np.nan
-    VIGIADA_HOSPITAL: Union[str, None] = np.nan
-    VIGIADA_PARICULAR: Union[str, None] = np.nan
-    ESTIMATIVA_PESO_ECO_24: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_25: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_26: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_27: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_28: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_29: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_31: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_32: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_33: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_34: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_35: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_36: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_37: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_38: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_39: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_40: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_41: Union[float, None] = np.nan
-    ESTIMATIVA_PESO_ECO_42: Union[float, None] = np.nan
-    APRESENTACAO_42: Union[str, None] = np.nan
-    APRESENTACAO_41: Union[str, None] = np.nan
-    APRESENTACAO_40: Union[str, None] = np.nan
-    APRESENTACAO_39: Union[str, None] = np.nan
-    APRESENTACAO_38: Union[str, None] = np.nan
-    APRESENTACAO_37: Union[str, None] = np.nan
-    APRESENTACAO_36: Union[str, None] = np.nan
-    APRESENTACAO_35: Union[str, None] = np.nan
-    APRESENTACAO_34: Union[str, None] = np.nan
-    APRESENTACAO_33: Union[str, None] = np.nan
-    APRESENTACAO_32: Union[str, None] = np.nan
-    APRESENTACAO_31: Union[str, None] = np.nan
-    APRESENTACAO_29: Union[str, None] = np.nan
-    APRESENTACAO_28: Union[str, None] = np.nan
-    APRESENTACAO_27: Union[str, None] = np.nan
-    APRESENTACAO_26: Union[str, None] = np.nan
-    APRESENTACAO_25: Union[str, None] = np.nan
-    APRESENTACAO_24: Union[str, None] = np.nan
-    G_TERAPEUTICA: Union[str, None] = np.nan
-    NUM_RN: Union[str, None] = np.nan
-    E_ALT_UT: Union[str, None] = np.nan
-    BACIA: Union[str, None] = np.nan
-    BISHOP_SCORE: Union[int, None] = np.nan
-    BISHOP_CONSISTENCIA: Union[int, None] = np.nan
-    BISHOP_DESCIDA: Union[int, None] = np.nan
-    BISHOP_DILATACAO: Union[int, None] = np.nan
-    BISHOP_EXTINCAO: Union[int, None] = np.nan
-    BISHOP_POSICAO: Union[int, None] = np.nan
-    TRAB_PARTO_ENTRADA_INDUZIDO: Union[str, None] = np.nan
-    RPM: Union[str, None] = np.nan
-    HIPERTENSAO_CRONICA: Union[str, None] = np.nan
-    HIPERTENSAO_GESTACIONAL: Union[str, None] = np.nan
-    HIPERTENSAO_PRE_ECLAMPSIA: Union[str, None] = np.nan
-    DIABETES_GESTACIONAL: Union[str, None] = np.nan
-    DIABETES_GESTACIONAL_DIETA: Union[str, None] = np.nan
-    DIABETES_GESTACIONAL_INSULINA: Union[str, None] = np.nan
-    DIABETES_GESTACIONAL_ANTIBIO: Union[str, None] = np.nan
-    DIABETES_MATERNA: Union[str, None] = np.nan
-    DIABETES_TIPO1: Union[str, None] = np.nan
-    DIABETES_TIPO2: Union[str, None] = np.nan
-    HEMATOLOGICA: Union[str, None] = np.nan
-    RESPIRATORIA: Union[str, None] = np.nan
-    CEREBRAL: Union[str, None] = np.nan
-    CARDIACA: Union[str, None] = np.nan
+    IDENTIFICADOR: Union[str, None] = None
+    DATA_PARTO: Union[str, None] = None
+    PESO_ADMISSAO_INTERNAMENTO: Union[str, None] = None
+    CIGARROS: Union[str, None] = None
+    ALCOOL: Union[str, None] = None
+    ESTUPEFACIENTES: Union[str, None] = None
+    VENTOSAS_ANTERIOR: Union[float, None] = None
+    FORCEPS_ANTERIOR: Union[float, None] = None
+    CESARIANAS_ANTERIOR: Union[float, None] = None
+    CESARIANAS_MOTIVO_ANTERIOR: Union[str, None] = None
+    VIGIADA_HOSPITAL: Union[str, None] = None
+    VIGIADA_PARICULAR: Union[str, None] = None
+    ESTIMATIVA_PESO_ECO_24: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_25: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_26: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_27: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_28: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_29: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_31: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_32: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_33: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_34: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_35: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_36: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_37: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_38: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_39: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_40: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_41: Union[float, None] = None
+    ESTIMATIVA_PESO_ECO_42: Union[float, None] = None
+    APRESENTACAO_42: Union[str, None] = None
+    APRESENTACAO_41: Union[str, None] = None
+    APRESENTACAO_40: Union[str, None] = None
+    APRESENTACAO_39: Union[str, None] = None
+    APRESENTACAO_38: Union[str, None] = None
+    APRESENTACAO_37: Union[str, None] = None
+    APRESENTACAO_36: Union[str, None] = None
+    APRESENTACAO_35: Union[str, None] = None
+    APRESENTACAO_34: Union[str, None] = None
+    APRESENTACAO_33: Union[str, None] = None
+    APRESENTACAO_32: Union[str, None] = None
+    APRESENTACAO_31: Union[str, None] = None
+    APRESENTACAO_29: Union[str, None] = None
+    APRESENTACAO_28: Union[str, None] = None
+    APRESENTACAO_27: Union[str, None] = None
+    APRESENTACAO_26: Union[str, None] = None
+    APRESENTACAO_25: Union[str, None] = None
+    APRESENTACAO_24: Union[str, None] = None
+    G_TERAPEUTICA: Union[str, None] = None
+    NUM_RN: Union[str, None] = None
+    E_ALT_UT: Union[str, None] = None
+    BACIA: Union[str, None] = None
+    BISHOP_SCORE: Union[int, None] = None
+    BISHOP_CONSISTENCIA: Union[int, None] = None
+    BISHOP_DESCIDA: Union[int, None] = None
+    BISHOP_DILATACAO: Union[int, None] = None
+    BISHOP_EXTINCAO: Union[int, None] = None
+    BISHOP_POSICAO: Union[int, None] = None
+    TRAB_PARTO_ENTRADA_INDUZIDO: Union[str, None] = None
+    RPM: Union[str, None] = None
+    HIPERTENSAO_CRONICA: Union[str, None] = None
+    HIPERTENSAO_GESTACIONAL: Union[str, None] = None
+    HIPERTENSAO_PRE_ECLAMPSIA: Union[str, None] = None
+    DIABETES_GESTACIONAL: Union[str, None] = None
+    DIABETES_GESTACIONAL_DIETA: Union[str, None] = None
+    DIABETES_GESTACIONAL_INSULINA: Union[str, None] = None
+    DIABETES_GESTACIONAL_ANTIBIO: Union[str, None] = None
+    DIABETES_MATERNA: Union[str, None] = None
+    DIABETES_TIPO1: Union[str, None] = None
+    DIABETES_TIPO2: Union[str, None] = None
+    HEMATOLOGICA: Union[str, None] = None
+    RESPIRATORIA: Union[str, None] = None
+    CEREBRAL: Union[str, None] = None
+    CARDIACA: Union[str, None] = None
 
 
-class Alg(BaseModel):
+class AlgorithmInfo(BaseModel):
     model: str
     version: float
 
@@ -135,12 +135,12 @@ class Meta(BaseModel):
     Meta information for the model result
     """
 
-    Correctness: Alg
-    IQR: Alg
-    Missing: Alg
-    expecations: Alg
+    Correctness: AlgorithmInfo
+    IQR: AlgorithmInfo
+    Missing: AlgorithmInfo
+    expecations: AlgorithmInfo
     timestamp: datetime.datetime
-    column_score: Union[float, None] = np.nan
+    column_score: Union[float, None] = None
 
 
 class Result(BaseModel):
@@ -163,10 +163,14 @@ async def get_predict_easy(row: Row):
     fastapi_logger.info("called quality_check")
     fastapi_logger.info(row)
 
-    missing_score, missing_dict = get_missing_score(row)
-    correctness_score, correctness_dict = get_correctness_score(row, model)
-    iqr_score, iqr_dict = get_iqr_score(row)  # ??
-    expectations_score, expectations_dict = get_expecations_score(row)
+    opt = jsonable_encoder(row)
+    df = pd.DataFrame(opt, index=[0])
+    df = df.fillna(value=np.nan)
+
+    missing_score, missing_dict = get_missing_score(opt)
+    correctness_score, correctness_dict = get_correctness_score(df, model)
+    iqr_score, iqr_dict = get_iqr_score(df)  # ??
+    expectations_score, expectations_dict = get_expecations_score(df)
     # print(missing_score)
     # print(correctness_score)
     # print(iqr_dict)

@@ -184,13 +184,14 @@ network_cols = [
 ]
 
 
-def get_iqr_score(row):
+def get_iqr_score(opt):
     score = 0
     result_dict = {}
-    opt = jsonable_encoder(row)
+    # opt = jsonable_encoder(row)
+    # print(opt)
     for c in int_cols:
         # print(c, iqr_dict[c], opt[c])
-        x = opt[c]
+        x = opt[c].values[0]
         iqr = iqr_dict[c]["iqr"]
         q3 = iqr_dict[c]["q3"]
         q1 = iqr_dict[c]["q1"]
@@ -200,6 +201,7 @@ def get_iqr_score(row):
             uu_threshold = q3 + iqr * 3
             l_threshold = q1 - iqr * 1.5
             u_threshold = q3 + iqr * 1.5
+            # print(x)
             if x < ll_threshold or x > uu_threshold:
                 print("out of range")
                 score += 2
@@ -216,11 +218,11 @@ def get_iqr_score(row):
     return score / len(int_cols), result_dict
 
 
-def get_missing_score(row):
+def get_missing_score(opt):
     score = 0
     null_count = 0
     result_dict = {}
-    opt = jsonable_encoder(row)
+    # opt = jsonable_encoder(row)
     for c in cols:
 
         if pd.isnull(opt[c]):
@@ -307,10 +309,10 @@ def parse_ge_result(re):
     return results_df
 
 
-def get_expecations_score(row):
-    opt = jsonable_encoder(row)
+def get_expecations_score(df):
+    # opt = jsonable_encoder(row)
     result_dict = {}
-    df = pd.DataFrame(opt, index=[0])
+    # df = pd.DataFrame(opt, index=[0])
     my_expectation_suite = json.load(open("my_expectation_file.json"))
     my_df = ge.from_pandas(df, expectation_suite=my_expectation_suite)
     result = my_df.validate()
@@ -328,14 +330,15 @@ def get_expecations_score(row):
     return score, result_dict
 
 
-def get_correctness_score(row, model):
+def get_correctness_score(df, model):
     inference = VariableElimination(model)
 
     score = 0
-    opt = jsonable_encoder(row)
+    # opt = jsonable_encoder(row)
     result_dict = {}
-    df = pd.DataFrame(opt, index=[0])
-    # print(df)
+    # df = pd.DataFrame(opt, index=[0])
+
+    print(df)
     df[cat_cols] = df[cat_cols].astype(str)
     # print(df.to_dict())
     x_treated = pl.transform(df)
