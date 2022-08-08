@@ -9,6 +9,7 @@ COPY requirements.txt /app
 COPY *.py /app/
 COPY *.json /app/
 COPY *.sav /app/
+COPY *.xml /app/
 
 
 WORKDIR /app
