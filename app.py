@@ -19,6 +19,7 @@ from sklearn.model_selection import train_test_split
 import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
+from fastapi.responses import JSONResponse
 
 from sklearn.pipeline import Pipeline, make_pipeline
 from functions_support import *
@@ -134,16 +135,31 @@ async def root():
 
 @app.post("/quality_check")
 async def get_predict_easy(row: Row):
-    print(row)
+    # print(row)
     fastapi_logger.info("called quality_check")
     fastapi_logger.info(row)
 
-    missing_score = get_missing_score(row)
-    correctness_score = get_correctness_score(row, model)
-    iqr_score = get_iqr_score(row)  # ??
-    # expecations_score = get_expecations_score(row)
+    missing_score, missing_dict = get_missing_score(row)
+    correctness_score, correctness_dict = get_correctness_score(row, model)
+    iqr_score, iqr_dict = get_iqr_score(row)  # ??
+    expectations_score, expectations_dict = get_expecations_score(row)
     # print(missing_score)
     # print(correctness_score)
-    final_score = calculate_score(missing_score, correctness_score, iqr_score)
-
-    return final_score
+    # print(iqr_dict)
+    # print(missing_dict)
+    # print(correctness_dict)
+    # print(expectations_dict)
+    missing_df = pd.DataFrame(missing_dict, index=[0])
+    correctness_df = pd.DataFrame(correctness_dict, index=[0])
+    iqr_df = pd.DataFrame(iqr_dict, index=[0])
+    expectations_df = pd.DataFrame(expectations_dict, index=[0])
+    result_df = pd.concat([missing_df, correctness_df, iqr_df, expectations_df])
+    result_df.index = ["missing", "correctness", "iqr", "expectations"]
+    result_df.replace(np.nan, None, inplace=True)
+    final_score = calculate_score(
+        missing_score, correctness_score, iqr_score, expectations_score
+    )
+    final_dict = result_df.to_dict()
+    final_dict["score"] = final_score
+    # print(final_dict)
+    return JSONResponse(content=final_dict)

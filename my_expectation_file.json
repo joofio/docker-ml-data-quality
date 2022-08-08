@@ -1,0 +1,194 @@
+{
+  "data_asset_type": "Dataset",
+  "expectation_suite_name": "default",
+  "expectations": [
+    {
+      "expectation_type": "expect_column_values_to_be_in_set",
+      "kwargs": {
+        "column": "TIPO_GRAVIDEZ",
+        "value_set": [
+          "ESPONTANEA",
+          "FIV",
+          "INSEMINACAO",
+          "TEC",
+          "ESTIMULACAO",
+          "ICSI"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_in_set",
+      "kwargs": {
+        "column": "TIPO_PARTO",
+        "value_set": [
+          "Cesariana",
+          "Parto eut\u00f3cico cef\u00e1lico",
+          "Parto auxiliado por f\u00f3rceps",
+          "Parto auxiliado por ventosa",
+          "Parto eut\u00f3cico p\u00e9lvico",
+          "Grande extra\u00e7\u00e3o p\u00e9lvica"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "BISHOP_SCORE",
+        "max_value": 13,
+        "min_value": 0
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "BISHOP_CONSISTENCIA",
+        "max_value": 2,
+        "min_value": 0
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "BISHOP_DESCIDA",
+        "max_value": 3,
+        "min_value": 0
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "BISHOP_DILATACAO",
+        "max_value": 3,
+        "min_value": 0
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "BISHOP_EXTINCAO",
+        "max_value": 3,
+        "min_value": 0
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "BISHOP_POSICAO",
+        "max_value": 2,
+        "min_value": 0
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_in_set",
+      "kwargs": {
+        "column": "GRUPO_ROBSON",
+        "value_set": [
+          "10",
+          "3",
+          "4",
+          "5",
+          "1",
+          "2",
+          "7",
+          "UNKNOWN",
+          "6",
+          "9",
+          "8"
+        ]
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "SEMANAS_GESTACAO_PARTO",
+        "max_value": 42,
+        "min_value": 24
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "PESO_INICIAL",
+        "max_value": 120,
+        "min_value": 30
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_mean_to_be_between",
+      "kwargs": {
+        "column": "IDADE_MATERNA",
+        "max_value": 35,
+        "min_value": 25
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "PESO_ADMISSAO_INTERNAMENTO",
+        "max_value": 120,
+        "min_value": 30
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "IMC",
+        "max_value": 50,
+        "min_value": 15
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_values_to_match_strftime_format",
+      "kwargs": {
+        "column": "DATA_PARTO",
+        "strftime_format": "%d/%m/%Y"
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_pair_values_A_to_be_greater_than_B",
+      "kwargs": {
+        "column_A": "ESTIMATIVA_PESO_ECO_30",
+        "column_B": "ESTIMATIVA_PESO_ECO_25",
+        "ignore_row_if": "either_value_is_missing"
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_pair_values_A_to_be_greater_than_B",
+      "kwargs": {
+        "column_A": "ESTIMATIVA_PESO_ECO_35",
+        "column_B": "ESTIMATIVA_PESO_ECO_30",
+        "ignore_row_if": "either_value_is_missing"
+      },
+      "meta": {}
+    },
+    {
+      "expectation_type": "expect_column_pair_values_A_to_be_greater_than_B",
+      "kwargs": {
+        "column_A": "ESTIMATIVA_PESO_ECO_40",
+        "column_B": "ESTIMATIVA_PESO_ECO_35",
+        "ignore_row_if": "either_value_is_missing"
+      },
+      "meta": {}
+    }
+  ],
+  "ge_cloud_id": null,
+  "meta": {
+    "great_expectations_version": "0.15.17"
+  }
+}

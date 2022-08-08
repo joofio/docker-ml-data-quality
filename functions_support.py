@@ -22,6 +22,7 @@ from sklearn.compose import ColumnTransformer
 from pgmpy.inference import VariableElimination, BeliefPropagation
 from sklearn.pipeline import Pipeline, make_pipeline
 import scipy.stats as ss
+import great_expectations as ge
 
 reader = XMLBIFReader("first_model.xml")
 model = reader.get_model()
@@ -185,7 +186,7 @@ network_cols = [
 
 def get_iqr_score(row):
     score = 0
-
+    result_dict = {}
     opt = jsonable_encoder(row)
     for c in int_cols:
         # print(c, iqr_dict[c], opt[c])
@@ -202,17 +203,23 @@ def get_iqr_score(row):
             if x < ll_threshold or x > uu_threshold:
                 print("out of range")
                 score += 2
+                result_dict[c] = 2
             elif x < l_threshold or x > u_threshold:
                 print("near range")
                 score += 1
+                result_dict[c] = 1
+
             else:
                 score += 0
-    return score / len(int_cols)
+                result_dict[c] = 0
+
+    return score / len(int_cols), result_dict
 
 
 def get_missing_score(row):
     score = 0
     null_count = 0
+    result_dict = {}
     opt = jsonable_encoder(row)
     for c in cols:
 
@@ -220,8 +227,9 @@ def get_missing_score(row):
             print("MISSSING: ", c, null_dict[c])
             score += null_dict[c] / 100
             null_count += 1
+            result_dict[c] = null_dict[c]
     print(score, len(cols), null_count)
-    return score / (len(cols) - null_count)
+    return score / (len(cols) - null_count), result_dict
 
 
 def transfrom_array_to_df_onehot(pl, nparray):
@@ -258,12 +266,74 @@ def get_score_for_not_match(query, varia, truth):
     return 0
 
 
+def parse_ge_result(re):
+    res_dict = {
+        "expectation_type": [],
+        "cols": [],
+        "unexpected_count": [],
+        "missing_percent": [],
+        "missing_count": [],
+        "unexpected_percent": [],
+        "unexpected_percent_total": [],
+        "unexpected_percent_nonmissing": [],
+        "success": [],
+    }
+    rr = re.to_json_dict()
+    for c in rr["results"]:
+        exp_type = c["expectation_config"]["expectation_type"]
+
+        res_dict["expectation_type"].append(exp_type)
+        if "pair" in exp_type:
+            cols = [
+                c["expectation_config"]["kwargs"].get("column_A"),
+                c["expectation_config"]["kwargs"].get("column_B"),
+            ]
+        else:
+            cols = [c["expectation_config"]["kwargs"].get("column")]
+        res_dict["cols"].append(",".join(cols))
+        #  print(exp_type,",".join(cols))
+        res = c["result"]
+        #  print(res)
+        res_dict["unexpected_count"].append(res.get("unexpected_count"))
+        res_dict["missing_percent"].append(res.get("missing_percent"))
+        res_dict["missing_count"].append(res.get("missing_count"))
+        res_dict["unexpected_percent"].append(res.get("unexpected_percent"))
+        res_dict["unexpected_percent_total"].append(res.get("unexpected_percent_total"))
+        res_dict["unexpected_percent_nonmissing"].append(
+            res.get("unexpected_percent_nonmissing")
+        )
+        res_dict["success"].append(c["success"])
+    results_df = pd.DataFrame.from_dict(res_dict)
+    return results_df
+
+
+def get_expecations_score(row):
+    opt = jsonable_encoder(row)
+    result_dict = {}
+    df = pd.DataFrame(opt, index=[0])
+    my_expectation_suite = json.load(open("my_expectation_file.json"))
+    my_df = ge.from_pandas(df, expectation_suite=my_expectation_suite)
+    result = my_df.validate()
+    result_df = parse_ge_result(result)
+    issues = result_df[result_df["success"] == False]
+    for idx, row in issues.iterrows():
+        result_dict[row["cols"]] = {
+            "count": row["unexpected_count"],
+            "rule": row["expectation_type"],
+            "percentage": round(row["unexpected_percent"], 2),
+        }
+    # print(idx,row)
+    score = len(issues) / len(result_df)
+
+    return score, result_dict
+
+
 def get_correctness_score(row, model):
     inference = VariableElimination(model)
 
     score = 0
     opt = jsonable_encoder(row)
-
+    result_dict = {}
     df = pd.DataFrame(opt, index=[0])
     # print(df)
     df[cat_cols] = df[cat_cols].astype(str)
@@ -284,12 +354,13 @@ def get_correctness_score(row, model):
         # print(evidence)
         query = inference.query(variables=[c], evidence=evidence, show_progress=False)
         pred = query.state_names[c][query.values.argmax()]
-        score += get_score_for_not_match(query, c, truth)
+        matchs = get_score_for_not_match(query, c, truth)
+        score += matchs
+        result_dict[c] = matchs
+    return score / len(network_cols), result_dict
 
-    return score / len(network_cols)
 
-
-def calculate_score(missing_score, correctness_score, iqr_score):
+def calculate_score(missing_score, correctness_score, iqr_score, expectation_score):
     print("m", missing_score)
     print("c", correctness_score)
     print("iqr", iqr_score)

@@ -7,3 +7,4 @@ aiofiles
 python-multipart
 jinja2
 pgmpy
+great_expectations
