@@ -227,7 +227,7 @@ def get_missing_score(row):
             print("MISSSING: ", c, null_dict[c])
             score += null_dict[c] / 100
             null_count += 1
-            result_dict[c] = null_dict[c]
+            result_dict[c] = null_dict[c] / 100
     print(score, len(cols), null_count)
     return score / (len(cols) - null_count), result_dict
 

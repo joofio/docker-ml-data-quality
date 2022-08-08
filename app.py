@@ -20,9 +20,9 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from fastapi.responses import JSONResponse
-
 from sklearn.pipeline import Pipeline, make_pipeline
 from functions_support import *
+from typing import List
 
 
 class Row(BaseModel):
@@ -125,6 +125,30 @@ class Row(BaseModel):
     CARDIACA: Union[str, None] = np.nan
 
 
+class Alg(BaseModel):
+    model: str
+    version: float
+
+
+class Meta(BaseModel):
+    """
+    Meta information for the model result
+    """
+
+    Correctness: Alg
+    IQR: Alg
+    Missing: Alg
+    expecations: Alg
+    timestamp: datetime.datetime
+    column_score: Union[float, None] = np.nan
+
+
+class Result(BaseModel):
+    meta: Meta
+    results: list
+    row_score: float
+
+
 app = FastAPI()
 
 
@@ -133,7 +157,7 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.post("/quality_check")
+@app.post("/quality_check", response_model=Result)
 async def get_predict_easy(row: Row):
     # print(row)
     fastapi_logger.info("called quality_check")
@@ -159,7 +183,18 @@ async def get_predict_easy(row: Row):
     final_score = calculate_score(
         missing_score, correctness_score, iqr_score, expectations_score
     )
-    final_dict = result_df.to_dict()
-    final_dict["score"] = final_score
+    # print(datetime.datetime.now())
+    meta = {
+        "IQR": {"model": "z-score", "version": 0.1},
+        "Missing": {"model": "traindata", "version": 0.1},
+        "Correctness": {"model": "bayes", "version": 0.1},
+        "expecations": {"model": "human", "version": 0.1},
+        "timestamp": datetime.datetime.now().strftime("%Y%m%dT%H%M%S"),
+    }
+    final_dict = {
+        "meta": meta,
+        "results": result_df.to_dict(),
+        "row_score": final_score,
+    }
     # print(final_dict)
     return JSONResponse(content=final_dict)
