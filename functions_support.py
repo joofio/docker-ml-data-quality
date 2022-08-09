@@ -247,27 +247,6 @@ def transfrom_array_to_df_onehot(pl, nparray):
     return df1
 
 
-def get_score_for_not_match(query, varia, truth):
-    probas = query.values
-    rr = ss.rankdata(
-        [-el for el in probas], method="max"
-    )  # Negative so we make the reverse
-
-    pred_idx = query.values.argmax()
-    pred = query.state_names[varia][pred_idx]
-    pred_proba = probas[pred_idx]
-    pred_ranking = rr[pred_idx]
-
-    true_idx = query.state_names[varia].index(truth)
-    true_proba = probas[true_idx]
-    true_ranking = rr[true_idx]
-    states_nr = len(query.values)
-    if pred_ranking != true_ranking:
-        if true_ranking == states_nr:
-            return 1 - true_proba
-    return 0
-
-
 def parse_ge_result(re):
     res_dict = {
         "expectation_type": [],
@@ -328,6 +307,27 @@ def get_expecations_score(df):
     score = len(issues) / len(result_df)
 
     return score, result_dict
+
+
+def get_score_for_not_match(query, varia, truth):
+    probas = query.values
+    rr = ss.rankdata(
+        [-el for el in probas], method="max"
+    )  # Negative so we make the reverse
+
+    pred_idx = query.values.argmax()
+    pred = query.state_names[varia][pred_idx]
+    pred_proba = probas[pred_idx]
+    pred_ranking = rr[pred_idx]
+
+    true_idx = query.state_names[varia].index(truth)
+    true_proba = probas[true_idx]
+    true_ranking = rr[true_idx]
+    states_nr = len(query.values)
+    if pred_ranking != true_ranking:
+        if true_ranking == states_nr:
+            return 1 - true_proba
+    return 0
 
 
 def get_correctness_score(df, model):

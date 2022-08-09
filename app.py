@@ -2,6 +2,7 @@ from pgmpy.readwrite import XMLBIFWriter, XMLBIFReader
 import json
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
+from typing import List
 import datetime
 from enum import Enum
 from fastapi.logger import logger as fastapi_logger
@@ -48,7 +49,6 @@ class Row(BaseModel):
     TRAB_PARTO_NO_PARTO: Union[str, None] = None
     SEMANAS_GESTACAO_PARTO: Union[int, None] = None
     GRUPO_ROBSON: Union[str, None] = None
-
     IDENTIFICADOR: Union[str, None] = None
     DATA_PARTO: Union[str, None] = None
     PESO_ADMISSAO_INTERNAMENTO: Union[str, None] = None
@@ -124,10 +124,59 @@ class Row(BaseModel):
     CEREBRAL: Union[str, None] = None
     CARDIACA: Union[str, None] = None
 
+    class Config:
+        schema_extra = {
+            "GS": "O,RH_POSITIVO",
+            "IDADE_MATERNA": 25,
+            "PESO_INICIAL": 90.0,
+            "IMC": 34.3,
+            "A_PARA": 3.0,
+            "A_GESTA": 4,
+            "TIPO_GRAVIDEZ": "ESPONTANEA",
+            "VIGIADA": "S",
+            "NUMERO_CONSULTAS_PRE_NATAL": 6.0,
+            "VIGIADA_NESTE_HOSPITAL": "S",
+            "IDADE_GESTACIONAL_ADMISSAO": 37.0,
+            "TRAB_PARTO_ENTRADA_ESPONTANEO": "S",
+            "TIPO_PARTO": "Cesariana",
+            "APRESENTACAO_NO_PARTO": "Cefálica de vértice",
+            "TRAB_PARTO_NO_PARTO": "Espontâneo",
+            "SEMANAS_GESTACAO_PARTO": 37.0,
+            "GRUPO_ROBSON": "10",
+        }
+
 
 class AlgorithmInfo(BaseModel):
     model: str
     version: float
+
+
+class Result(BaseModel):
+    correctness: Union[float, None] = Field(
+        default=None,
+        description="The percentage of how wrong the field is",
+        title="Correctness of the field",
+    )
+    iqr: Union[float, None] = Field(
+        default=None,
+        description="The score of how inside the IQR the field is",
+        title="Correctness of the field via IQR",
+    )
+    missing: Union[float, None] = Field(
+        default=None,
+        description="The percentage of how strange the missing of the field is",
+        title="Missing of the field",
+    )
+    expectations: Union[float, None] = Field(
+        default=None,
+        description="If the field is out of the expectations",
+        title="Expectations of the field",
+    )
+    column_score: Union[float, None] = Field(
+        default=None,
+        description="The overall percentage of how wrong the field is",
+        title="Score of the column",
+    )
 
 
 class Meta(BaseModel):
@@ -140,12 +189,11 @@ class Meta(BaseModel):
     Missing: AlgorithmInfo
     expecations: AlgorithmInfo
     timestamp: datetime.datetime
-    column_score: Union[float, None] = None
 
 
-class Result(BaseModel):
+class Response(BaseModel):
     meta: Meta
-    results: list
+    results: List[Result]
     row_score: float
 
 
@@ -157,8 +205,8 @@ async def root():
     return {"message": "Hello World"}
 
 
-@app.post("/quality_check", response_model=Result)
-async def get_predict_easy(row: Row):
+@app.post("/quality_check", response_model=Response)
+async def get_quality_score(row: Row):
     # print(row)
     fastapi_logger.info("called quality_check")
     fastapi_logger.info(row)
