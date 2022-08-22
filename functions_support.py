@@ -28,6 +28,10 @@ reader = XMLBIFReader("first_model.xml")
 model = reader.get_model()
 pl = joblib.load("pipeline.sav")
 
+ee = joblib.load("EllipticEnvelope.sav")
+lof = joblib.load("LocalOutlierFactor.sav")
+my_expectation_suite = json.load(open("my_expectation_file.json"))
+
 # Opening JSON file
 with open("null_dict.json") as json_file:
     null_dict = json.load(json_file)
@@ -183,6 +187,31 @@ network_cols = [
     "GRUPO_ROBSON",
 ]
 
+outlier_cols = [
+    "IDADE_MATERNA",
+    "GS",
+    "PESO_INICIAL",
+    "IMC",
+    "A_PARA",
+    "A_GESTA",
+    "EUTOCITO_ANTERIOR",
+    "TIPO_GRAVIDEZ",
+    "VIGIADA",
+    "NUMERO_CONSULTAS_PRE_NATAL",
+    "VIGIADA_CENTRO_SAUDE",
+    "VIGIADA_NESTE_HOSPITAL",
+    "ESTIMATIVA_PESO_ECO_30",
+    "APRESENTACAO_30",
+    "APRESENTACAO_ADMISSAO",
+    "IDADE_GESTACIONAL_ADMISSAO",
+    "TRAB_PARTO_ENTRADA_ESPONTANEO",
+    "TIPO_PARTO",
+    "APRESENTACAO_NO_PARTO",
+    "TRAB_PARTO_NO_PARTO",
+    "SEMANAS_GESTACAO_PARTO",
+    "GRUPO_ROBSON",
+]
+
 
 def get_iqr_score(opt):
     score = 0
@@ -292,7 +321,6 @@ def get_expecations_score(df):
     # opt = jsonable_encoder(row)
     result_dict = {}
     # df = pd.DataFrame(opt, index=[0])
-    my_expectation_suite = json.load(open("my_expectation_file.json"))
     my_df = ge.from_pandas(df, expectation_suite=my_expectation_suite)
     result = my_df.validate()
     result_df = parse_ge_result(result)
@@ -369,3 +397,21 @@ def calculate_score(missing_score, correctness_score, iqr_score, expectation_sco
     print("iqr", iqr_score)
 
     return round((missing_score + correctness_score + iqr_score) / 3, 2)
+
+
+def get_outlier_elliptic_score(df):
+    # print(df)
+    df[cat_cols] = df[cat_cols].astype(str)
+    # print(df.to_dict())
+    x_treated = pl.transform(df[outlier_cols])
+    # print(opt)
+    return ee.predict(x_treated)
+
+
+def get_outlier_local_outlier_factor_score(df):
+    # print(df)
+    df[cat_cols] = df[cat_cols].astype(str)
+    # print(df.to_dict())
+    x_treated = pl.transform(df[outlier_cols])
+    # print(opt)
+    return lof.predict(x_treated)

@@ -219,6 +219,9 @@ async def get_quality_score(row: Row):
     correctness_score, correctness_dict = get_correctness_score(df, model)
     iqr_score, iqr_dict = get_iqr_score(df)  # ??
     expectations_score, expectations_dict = get_expecations_score(df)
+    outlier_elliptic_score = get_outlier_elliptic_score(df)
+    outlier_local_outlier_factor_score = get_outlier_local_outlier_factor_score(df)
+    print(outlier_elliptic_score, outlier_local_outlier_factor_score)
     # print(missing_score)
     # print(correctness_score)
     # print(iqr_dict)
@@ -241,12 +244,20 @@ async def get_quality_score(row: Row):
         "Missing": {"model": "traindata", "version": 0.1},
         "Correctness": {"model": "bayes", "version": 0.1},
         "expecations": {"model": "human", "version": 0.1},
+        "lof": {"model": "lof", "version": 0.1},
+        "elliptic": {"model": "elliptic", "version": 0.1},
         "timestamp": datetime.datetime.now().strftime("%Y%m%dT%H%M%S"),
     }
     final_dict = {
         "meta": meta,
-        "results": result_df.to_dict(),
-        "row_score": final_score,
+        "columns": result_df.to_dict(),
+        "row": [
+            {
+                "row_score": final_score,
+                "lof_outlier": int(outlier_local_outlier_factor_score[0]),
+                "elliptic_outlier": int(outlier_elliptic_score[0]),
+            }
+        ],
     }
     # print(final_dict)
     return JSONResponse(content=final_dict)
