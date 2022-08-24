@@ -125,15 +125,6 @@
       "meta": {}
     },
     {
-      "expectation_type": "expect_column_mean_to_be_between",
-      "kwargs": {
-        "column": "IDADE_MATERNA",
-        "max_value": 35,
-        "min_value": 25
-      },
-      "meta": {}
-    },
-    {
       "expectation_type": "expect_column_values_to_be_between",
       "kwargs": {
         "column": "PESO_ADMISSAO_INTERNAMENTO",

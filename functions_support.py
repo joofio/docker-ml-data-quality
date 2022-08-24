@@ -23,8 +23,13 @@ from pgmpy.inference import VariableElimination, BeliefPropagation
 from sklearn.pipeline import Pipeline, make_pipeline
 import scipy.stats as ss
 import great_expectations as ge
+from os import getenv
+import pickle
 
-reader = XMLBIFReader("first_model.xml")
+GIT_COMMIT = getenv("GIT_COMMIT", None)
+
+
+reader = XMLBIFReader("model_2.xml")
 model = reader.get_model()
 pl = joblib.load("pipeline.sav")
 
@@ -38,6 +43,10 @@ with open("null_dict.json") as json_file:
 
 with open("iqr_dict.json") as json_file:
     iqr_dict = json.load(json_file)
+
+with open("standardizer.pickle", "rb") as handle:
+    standardizer = pickle.load(handle)
+
 
 ord_cols = ["A_PARA", "A_GESTA", "EUTOCITO_ANTERIOR"]
 int_cols = [
@@ -259,7 +268,8 @@ def get_missing_score(opt):
             score += null_dict[c] / 100
             null_count += 1
             result_dict[c] = null_dict[c] / 100
-    print(score, len(cols), null_count)
+        else:
+            result_dict[c] = 0
     return score / (len(cols) - null_count), result_dict
 
 
@@ -324,6 +334,7 @@ def get_expecations_score(df):
     my_df = ge.from_pandas(df, expectation_suite=my_expectation_suite)
     result = my_df.validate()
     result_df = parse_ge_result(result)
+    print(result_df)
     issues = result_df[result_df["success"] == False]
     for idx, row in issues.iterrows():
         result_dict[row["cols"]] = {
@@ -333,7 +344,7 @@ def get_expecations_score(df):
         }
     # print(idx,row)
     score = len(issues) / len(result_df)
-
+    print(result_dict)
     return score, result_dict
 
 
@@ -358,6 +369,14 @@ def get_score_for_not_match(query, varia, truth):
     return 0
 
 
+def standardize_null(x, mapping):
+    if x in mapping.keys():
+        return mapping[x]
+    if pd.isna(x):
+        return np.nan
+    return x
+
+
 def get_correctness_score(df, model):
     inference = VariableElimination(model)
 
@@ -366,11 +385,24 @@ def get_correctness_score(df, model):
     result_dict = {}
     # df = pd.DataFrame(opt, index=[0])
 
-    print(df)
+    # print(df)
     df[cat_cols] = df[cat_cols].astype(str)
-    # print(df.to_dict())
+    # df.to_csv("debug.csv")
+    for col in df.columns:
+        df[col] = df[col].apply(standardize_null, mapping=standardizer)
+    for i in cat_cols:
+        df[i].replace({"None": np.nan}, inplace=True)
+        df[i] = df[i].astype(str)
+    for c in int_cols:
+        df[c].replace({"None": np.nan}, inplace=True)
+        df[c] = np.where(pd.isnull(df[c]), df[c], df[c].astype(float))
+    for c in ord_cols:
+        df[c].replace({"None": np.nan}, inplace=True)
+
+        df[c] = np.where(pd.isnull(df[c]), df[c], df[c].astype("Int64"))
     x_treated = pl.transform(df)
     # print(opt)
+    # print(x_treated)
     for c in network_cols:
         # print(c)
 
@@ -395,6 +427,7 @@ def calculate_score(missing_score, correctness_score, iqr_score, expectation_sco
     print("m", missing_score)
     print("c", correctness_score)
     print("iqr", iqr_score)
+    print("expectations", expectation_score)
 
     return round((missing_score + correctness_score + iqr_score) / 3, 2)
 

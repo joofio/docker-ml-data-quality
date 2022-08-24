@@ -229,17 +229,21 @@ async def get_quality_score(row: Row):
     # print(correctness_dict)
     # print(expectations_dict)
     missing_df = pd.DataFrame(missing_dict, index=[0])
+    print(missing_df)
     correctness_df = pd.DataFrame(correctness_dict, index=[0])
     iqr_df = pd.DataFrame(iqr_dict, index=[0])
     expectations_df = pd.DataFrame(expectations_dict, index=[0])
     result_df = pd.concat([missing_df, correctness_df, iqr_df, expectations_df])
     result_df.index = ["missing", "correctness", "iqr", "expectations"]
     result_df.replace(np.nan, None, inplace=True)
+    print(result_df)
+    result_df.to_csv("sss.csv")
     final_score = calculate_score(
         missing_score, correctness_score, iqr_score, expectations_score
     )
     # print(datetime.datetime.now())
     meta = {
+        "commit": GIT_COMMIT,
         "IQR": {"model": "z-score", "version": 0.1},
         "Missing": {"model": "traindata", "version": 0.1},
         "Correctness": {"model": "bayes", "version": 0.1},
