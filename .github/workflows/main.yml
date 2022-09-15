@@ -26,5 +26,5 @@ jobs:
         snapshot: true
         tags: "latest"
         workdir: .
-
+        buildargs: GIT_COMMIT
 
