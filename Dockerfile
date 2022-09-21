@@ -3,11 +3,12 @@
 FROM python:3.9-slim
 
 RUN mkdir /app
-RUN apt-get update && apt-get install -y --no-install-recommends apt-utils
+RUN sudo apt-get update
+RUN sudo apt-get install --reinstall build-essential
 COPY requirements.txt /app
 
 RUN apt-get install zip -y
-RUN apt-get -y install gcc
+#RUN apt-get -y install gcc
 
 
 COPY *.py /app/
