@@ -11,10 +11,11 @@ COPY *.json /app/
 COPY *.sav /app/
 COPY *.xml /app/
 COPY *.pickle /app/
-
+COPY *.zip /app/
 
 
 WORKDIR /app
+RUN unzip gritbot.zip
 RUN pip install -r requirements.txt
 RUN pip uninstall numpy --yes
 RUN pip install numpy==1.20 
