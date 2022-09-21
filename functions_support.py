@@ -25,6 +25,11 @@ import scipy.stats as ss
 import great_expectations as ge
 from os import getenv
 import pickle
+from outliertree import OutlierTree
+from preprocessing import preprocess_df
+from io import StringIO
+import sys
+
 
 GIT_COMMIT = getenv("GIT_COMMIT", None)
 
@@ -36,6 +41,8 @@ pl = joblib.load("pipeline.sav")
 ee = joblib.load("EllipticEnvelope.sav")
 lof = joblib.load("LocalOutlierFactor.sav")
 my_expectation_suite = json.load(open("my_expectation_file.json"))
+outliers_model = joblib.load("gritbot.sav")
+
 
 # Opening JSON file
 with open("null_dict.json") as json_file:
@@ -448,3 +455,42 @@ def get_outlier_local_outlier_factor_score(df):
     x_treated = pl.transform(df[outlier_cols])
     # print(opt)
     return lof.predict(x_treated)
+
+
+def create_response_outlier(out):
+    results = []
+    for _, x in out[out["suspicious_value"] != {}].iterrows():
+        susp = x["suspicious_value"]
+        # print(susp)
+        # print(susp["column"])
+        cond = x["group_statistics"]
+        # print(cond)
+        results.append(
+            f"""Suspicious Column: {susp["column"]}. Suspicious Value: {susp["value"]}"""
+        )
+    return results
+
+
+class Capturing(list):
+    def __enter__(self):
+        self._stdout = sys.stdout
+        sys.stdout = self._stringio = StringIO()
+        return self
+
+    def __exit__(self, *args):
+        self.extend(self._stringio.getvalue().splitlines())
+        del self._stringio  # free up some memory
+        sys.stdout = self._stdout
+
+
+def gritbot_decision(df):
+    df_clean = preprocess_df(df, "CHSJ")
+    df_clean["silo"] = "CHSJ"  # must be corrected
+    new_outliers = outliers_model.predict(df_clean)
+    if len(new_outliers) >= 1:
+        with Capturing() as output:
+            outliers_model.print_outliers(new_outliers)
+
+        return "".join(output[3:])
+    else:
+        return "0"

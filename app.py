@@ -222,6 +222,8 @@ async def get_quality_score(row: Row):
     outlier_elliptic_score = get_outlier_elliptic_score(df)
     outlier_local_outlier_factor_score = get_outlier_local_outlier_factor_score(df)
     print(outlier_elliptic_score, outlier_local_outlier_factor_score)
+    gritbot_score = gritbot_decision(df)
+    print("gritbot_score", gritbot_score)
     # print(missing_score)
     # print(correctness_score)
     # print(iqr_dict)
@@ -260,6 +262,7 @@ async def get_quality_score(row: Row):
                 "row_score": final_score,
                 "lof_outlier": int(outlier_local_outlier_factor_score[0]),
                 "elliptic_outlier": int(outlier_elliptic_score[0]),
+                "gritbot": str(gritbot_score),
             }
         ],
     }
