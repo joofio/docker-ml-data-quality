@@ -3,7 +3,8 @@
 FROM python:3.9-slim
 
 RUN mkdir /app
-RUN apt-get install zip unzip
+RUN  apt-get update
+RUN apt-get install zip -y
 
 COPY requirements.txt /app
 
