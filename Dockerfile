@@ -4,10 +4,11 @@ FROM python:3.9-slim
 
 RUN mkdir /app
 RUN apt-get update && apt-get install -y --no-install-recommends apt-utils
+COPY requirements.txt /app
+
 RUN apt-get install zip -y
 RUN apt-get -y install gcc
 
-COPY requirements.txt /app
 
 COPY *.py /app/
 COPY *.json /app/
