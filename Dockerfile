@@ -4,7 +4,7 @@ FROM python:3.9-slim
 
 RUN mkdir /app
 RUN apt-get update
-RUN apt-get install --reinstall build-essential
+RUN apt-get install --reinstall build-essential -y
 COPY requirements.txt /app
 
 RUN apt-get install zip -y
