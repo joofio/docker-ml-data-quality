@@ -3,8 +3,8 @@
 FROM python:3.9-slim
 
 RUN mkdir /app
-RUN sudo apt-get update
-RUN sudo apt-get install --reinstall build-essential
+RUN apt-get update
+RUN apt-get install --reinstall build-essential
 COPY requirements.txt /app
 
 RUN apt-get install zip -y
