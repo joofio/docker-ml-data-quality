@@ -1,31 +1,13 @@
-from pgmpy.readwrite import XMLBIFWriter, XMLBIFReader
+from pgmpy.readwrite import XMLBIFReader
 import json
-from fastapi import FastAPI
-from pydantic import BaseModel, Field
-import datetime
-from enum import Enum
-from fastapi.logger import logger as fastapi_logger
-from logging.handlers import RotatingFileHandler
-from fastapi.encoders import jsonable_encoder
-from typing import Union
 import joblib
 import pandas as pd
-from sklearn.pipeline import Pipeline
-from sklearn.impute import SimpleImputer, KNNImputer
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import KBinsDiscretizer
-from sklearn.preprocessing import OrdinalEncoder, FunctionTransformer
-from sklearn.model_selection import train_test_split
 import numpy as np
-import pandas as pd
-from sklearn.compose import ColumnTransformer
-from pgmpy.inference import VariableElimination, BeliefPropagation
-from sklearn.pipeline import Pipeline, make_pipeline
+from pgmpy.inference import VariableElimination
 import scipy.stats as ss
 import great_expectations as ge
 from os import getenv
 import pickle
-from outliertree import OutlierTree
 from preprocessing import preprocess_df
 from io import StringIO
 import sys
@@ -342,7 +324,7 @@ def get_expecations_score(df):
     result = my_df.validate()
     result_df = parse_ge_result(result)
     print(result_df)
-    issues = result_df[result_df["success"] == False]
+    issues = result_df[result_df["success"] is False]
     for idx, row in issues.iterrows():
         result_dict[row["cols"]] = {
             "count": row["unexpected_count"],

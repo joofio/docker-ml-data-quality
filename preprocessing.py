@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-from datetime import datetime
-import joblib
 
 
 def preprocess_df(df, silo):
@@ -278,15 +276,11 @@ def preprocess_df(df, silo):
         "Cefálica dorso anterior": "cefálica dorso anterior",
         "cefálica, dorso anterior": "cefálica dorso anterior",
         "cefálico dorso à esquerda": "cefálica dorso à esquerda",
-        "cefálica, dorso anterior": "cefálica dorso anterior",
         "pelvica dorso-posterior": "pélvica dorso-posterior",
         "cefalica dta": "cefálica direita",
-        "cefálica, dorso anterior": "cefálica dorso anterior",
         "pelve modo pés": "pélvica modo pés",
         "situação oblíqua": "oblíqua",
         "cefálica dorso-posterior": "cefálica dorso posterior",
-        "cefálico dorso à esquerda": "cefálica dorso à esquerda",
-        "cefálica, dorso anterior": "cefálica dorso anterior",
         "cefálica, dorso à esquerda": "cefálica dorso à esquerda",
         "cefálica - dorso dta": "cefálica dorso à direita",
         "cefálica dorso-esquerda": "cefálica dorso à esquerda",
