@@ -18,6 +18,7 @@ from functions_support import (
     calculate_score,
     gritbot_decision,
     GIT_COMMIT,
+    model,
 )
 
 

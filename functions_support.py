@@ -324,7 +324,7 @@ def get_expecations_score(df):
     result = my_df.validate()
     result_df = parse_ge_result(result)
     print(result_df)
-    issues = result_df[result_df["success"] is False]
+    issues = result_df[result_df["success"] == False]
     for idx, row in issues.iterrows():
         result_dict[row["cols"]] = {
             "count": row["unexpected_count"],
