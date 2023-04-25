@@ -19,6 +19,7 @@ from functions_support import (
     gritbot_decision,
     GIT_COMMIT,
     model,
+    make_decisions,
 )
 
 
@@ -217,9 +218,9 @@ async def get_quality_score(row: Row):
     expectations_score, expectations_dict = get_expecations_score(df)
     outlier_elliptic_score = get_outlier_elliptic_score(df)
     outlier_local_outlier_factor_score = get_outlier_local_outlier_factor_score(df)
-    print(outlier_elliptic_score, outlier_local_outlier_factor_score)
+    # print(outlier_elliptic_score, outlier_local_outlier_factor_score)
     gritbot_score = gritbot_decision(df)
-    print("gritbot_score", gritbot_score)
+    # print("gritbot_score", gritbot_score)
     # print(missing_score)
     # print(correctness_score)
     # print(iqr_dict)
@@ -227,19 +228,25 @@ async def get_quality_score(row: Row):
     # print(correctness_dict)
     # print(expectations_dict)
     missing_df = pd.DataFrame(missing_dict, index=[0])
-    print(missing_df)
+    # print(missing_df)
     correctness_df = pd.DataFrame(correctness_dict, index=[0])
     iqr_df = pd.DataFrame(iqr_dict, index=[0])
-    expectations_df = pd.DataFrame(expectations_dict, index=[0])
+    expectations_df = pd.DataFrame(expectations_dict)
+    expectations_df = expectations_df.loc[["count", "rule"], :]
+
+    print(expectations_df)
+    print(expectations_dict)
     result_df = pd.concat([missing_df, correctness_df, iqr_df, expectations_df])
-    result_df.index = ["missing", "correctness", "iqr", "expectations"]
+    result_df.index = ["missing", "correctness", "iqr", "expectations", "rule"]
     result_df.replace(np.nan, None, inplace=True)
-    print(result_df)
+    # print(result_df)
     result_df.to_csv("sss.csv")
     final_score = calculate_score(
         missing_score, correctness_score, iqr_score, expectations_score
     )
     # print(datetime.datetime.now())
+    decisions = make_decisions(result_df)
+    decisions["correctness_cols"]["gritbot"] = gritbot_score
     meta = {
         "commit": GIT_COMMIT,
         "IQR": {"model": "z-score", "version": 0.1},
@@ -252,13 +259,12 @@ async def get_quality_score(row: Row):
     }
     final_dict = {
         "meta": meta,
-        "columns": result_df.to_dict(),
+        "columns": decisions,
         "row": [
             {
                 "row_score": final_score,
                 "lof_outlier": int(outlier_local_outlier_factor_score[0]),
                 "elliptic_outlier": int(outlier_elliptic_score[0]),
-                "gritbot": str(gritbot_score),
             }
         ],
     }

@@ -322,10 +322,13 @@ def get_expecations_score(df):
     # df = pd.DataFrame(opt, index=[0])
     my_df = ge.from_pandas(df, expectation_suite=my_expectation_suite)
     result = my_df.validate()
+    print(result)
     result_df = parse_ge_result(result)
-    print(result_df)
+
+    #   print(result_df)
     issues = result_df[result_df["success"] == False]
     for idx, row in issues.iterrows():
+        print("expectation", row)
         result_dict[row["cols"]] = {
             "count": row["unexpected_count"],
             "rule": row["expectation_type"],
@@ -333,7 +336,7 @@ def get_expecations_score(df):
         }
     # print(idx,row)
     score = len(issues) / len(result_df)
-    print(result_dict)
+    #  print(result_dict)
     return score, result_dict
 
 
@@ -413,12 +416,14 @@ def get_correctness_score(df, model):
 
 
 def calculate_score(missing_score, correctness_score, iqr_score, expectation_score):
-    print("m", missing_score)
-    print("c", correctness_score)
-    print("iqr", iqr_score)
-    print("expectations", expectation_score)
+    #   print("m", missing_score)
+    #   print("c", correctness_score)
+    #   print("iqr", iqr_score)
+    #   print("expectations", expectation_score)
 
-    return round((missing_score + correctness_score + iqr_score) / 3, 2)
+    return round(
+        (missing_score + correctness_score + iqr_score + expectation_score) / 4, 2
+    )
 
 
 def get_outlier_elliptic_score(df):
@@ -453,26 +458,59 @@ def create_response_outlier(out):
     return results
 
 
-class Capturing(list):
-    def __enter__(self):
-        self._stdout = sys.stdout
-        sys.stdout = self._stringio = StringIO()
-        return self
-
-    def __exit__(self, *args):
-        self.extend(self._stringio.getvalue().splitlines())
-        del self._stringio  # free up some memory
-        sys.stdout = self._stdout
-
-
 def gritbot_decision(df):
     df_clean = preprocess_df(df, "CHSJ")
     df_clean["silo"] = "CHSJ"  # must be corrected
+    grit_bot_score = []
     new_outliers = outliers_model.predict(df_clean)
-    if len(new_outliers) >= 1:
-        with Capturing() as output:
-            outliers_model.print_outliers(new_outliers)
+    for idx, row in new_outliers.iterrows():
+        print(row)
+        d = {}
+        d["column"] = row["suspicious_value"]["column"]
+        d["group_statistics"] = row["group_statistics"]
+        d["conditions"] = row["conditions"]
+        d["outlier_score"] = row["outlier_score"]
+        grit_bot_score.append(d)
+    return grit_bot_score
 
-        return "".join(output[3:])
-    else:
-        return "0"
+
+def make_decisions(df):
+
+    # set the threshold value
+    missing_threshold = 0.5
+    correctness_threshold = 0.5
+    iqr_threshold = 0.5
+    expectations_threshold = 0.5
+
+    mask = df.loc["missing", :] > missing_threshold
+    # filter the row based on the boolean mask
+    filtered_row = df.loc["missing", mask]
+    # print the filtered row
+    # print(filtered_row)
+
+    missing_cols = list(filtered_row.index)
+    mask = df.loc["correctness", :] > correctness_threshold
+    filtered_row = df.loc["correctness", mask]
+    # print(filtered_row)
+
+    correctness_cols = list(filtered_row.index)
+    mask = df.loc["iqr", :] > iqr_threshold
+    filtered_row = df.loc["iqr", mask]
+    # print(filtered_row)
+    iqr_cols = list(filtered_row.index)
+    #  print("hhhhhherrrrre")
+    #  print(df.loc["expectations", :])
+    mask = df.loc["expectations", :] > expectations_threshold
+    filtered_row = df.loc["rule", mask]
+    print(filtered_row)
+    expectations_cols = filtered_row.to_dict()
+
+    return {
+        "missing_cols": missing_cols,
+        "correctness_cols": {
+            "bayes": correctness_cols,
+            "gritbot": {},
+            "iqr": iqr_cols,
+            "expectations": expectations_cols,
+        },
+    }

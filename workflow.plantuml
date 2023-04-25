@@ -1,0 +1,28 @@
+@startuml
+(*) --> "missing score"
+
+"missing score" --> "correctness score"
+
+"missing score" --> "calculate glocal score"
+
+
+"correctness score" --> "IQR score"
+
+"correctness score" --> "calculate glocal score"
+
+"IQR score" --> "expectations_score"
+
+"IQR score" --> "calculate glocal score"
+
+"expectations_score" --> "outlier_elliptic_score"
+
+"expectations_score" --> "calculate glocal score"
+
+"outlier_elliptic_score" --> "outlier_local_outlier_factor_score"
+
+"outlier_local_outlier_factor_score" --> "gritbot_score"
+
+
+
+
+@enduml
