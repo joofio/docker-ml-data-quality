@@ -472,11 +472,14 @@ def gritbot_decision(df):
     df_clean = preprocess_df(df, "CHSJ")
     df_clean["silo"] = "CHSJ"  # must be corrected
     grit_bot_score = []
+
     new_outliers = outliers_model.predict(df_clean)
+
     for idx, row in new_outliers.iterrows():
-        print(row)
+        if row.get("suspicious_value").get("column") is None:
+            return grit_bot_score
         d = {}
-        d["column"] = row["suspicious_value"]["column"]
+        d["column"] = row.get("suspicious_value").get("column")
         d["group_statistics"] = row["group_statistics"]
         d["conditions"] = row["conditions"]
         d["outlier_score"] = row["outlier_score"]

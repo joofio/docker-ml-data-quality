@@ -220,22 +220,19 @@ async def get_quality_score(row: Row):
     outlier_local_outlier_factor_score = get_outlier_local_outlier_factor_score(df)
     # print(outlier_elliptic_score, outlier_local_outlier_factor_score)
     gritbot_score = gritbot_decision(df)
-    # print("gritbot_score", gritbot_score)
-    # print(missing_score)
-    # print(correctness_score)
-    # print(iqr_dict)
-    # print(missing_dict)
-    # print(correctness_dict)
-    # print(expectations_dict)
+
     missing_df = pd.DataFrame(missing_dict, index=[0])
     # print(missing_df)
     correctness_df = pd.DataFrame(correctness_dict, index=[0])
     iqr_df = pd.DataFrame(iqr_dict, index=[0])
     expectations_df = pd.DataFrame(expectations_dict)
-    expectations_df = expectations_df.loc[["count", "text"], :]
-
     print(expectations_df)
-    print(expectations_dict)
+    if len(expectations_df) > 0:
+        expectations_df = expectations_df.loc[["count", "text"], :]
+    else:
+        expectations_df = pd.DataFrame({c: [np.nan, np.nan] for c in df.columns})
+    print(expectations_df)
+    # print(expectations_dict)
     result_df = pd.concat([missing_df, correctness_df, iqr_df, expectations_df])
     result_df.index = ["missing", "correctness", "iqr", "expectations", "rule"]
     result_df.replace(np.nan, None, inplace=True)
@@ -263,7 +260,9 @@ async def get_quality_score(row: Row):
         "row": [
             {
                 "row_score": final_score,
-                "lof_outlier": int(outlier_local_outlier_factor_score[0]),
+                "lof_outlier": "NOK"
+                if int(outlier_local_outlier_factor_score[0]) < 0
+                else "OK",
                 "elliptic_outlier": int(outlier_elliptic_score[0]),
             }
         ],
