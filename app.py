@@ -215,7 +215,7 @@ async def get_quality_score(row: Row):
     missing_score, missing_dict = get_missing_score(opt)
     correctness_score, correctness_dict = get_correctness_score(df, model)
     iqr_score, iqr_dict = get_iqr_score(df)  # ??
-    expectations_score, expectations_dict = get_expecations_score(df)
+    expectations_score, expectations_dict, statistics = get_expecations_score(df)
     outlier_elliptic_score = get_outlier_elliptic_score(df)
     outlier_local_outlier_factor_score = get_outlier_local_outlier_factor_score(df)
     # print(outlier_elliptic_score, outlier_local_outlier_factor_score)
@@ -232,7 +232,7 @@ async def get_quality_score(row: Row):
     correctness_df = pd.DataFrame(correctness_dict, index=[0])
     iqr_df = pd.DataFrame(iqr_dict, index=[0])
     expectations_df = pd.DataFrame(expectations_dict)
-    expectations_df = expectations_df.loc[["count", "rule"], :]
+    expectations_df = expectations_df.loc[["count", "text"], :]
 
     print(expectations_df)
     print(expectations_dict)

@@ -279,39 +279,47 @@ def parse_ge_result(re):
     res_dict = {
         "expectation_type": [],
         "cols": [],
+        "text": [],
         "unexpected_count": [],
-        "missing_percent": [],
-        "missing_count": [],
-        "unexpected_percent": [],
-        "unexpected_percent_total": [],
-        "unexpected_percent_nonmissing": [],
         "success": [],
     }
     rr = re.to_json_dict()
+    # res_dict["statistics"] = rr["statistics"]
     for c in rr["results"]:
         exp_type = c["expectation_config"]["expectation_type"]
-
+        # print(exp_type)
         res_dict["expectation_type"].append(exp_type)
         if "pair" in exp_type:
             cols = [
                 c["expectation_config"]["kwargs"].get("column_A"),
                 c["expectation_config"]["kwargs"].get("column_B"),
             ]
+
         else:
             cols = [c["expectation_config"]["kwargs"].get("column")]
+        if "expect_column_values_to_be_between" in exp_type:
+            text = (
+                str(exp_type)
+                + "->"
+                + "["
+                + str(c["expectation_config"]["kwargs"]["min_value"])
+                + ","
+                + str(c["expectation_config"]["kwargs"]["max_value"])
+                + "]"
+            )
+        else:
+            text = str(exp_type)
+            # print(exp_type)
+        res_dict["text"].append(text)
+
         res_dict["cols"].append(",".join(cols))
-        #  print(exp_type,",".join(cols))
+        #  print(exp_type, ",".join(cols))
         res = c["result"]
         #  print(res)
         res_dict["unexpected_count"].append(res.get("unexpected_count"))
-        res_dict["missing_percent"].append(res.get("missing_percent"))
-        res_dict["missing_count"].append(res.get("missing_count"))
-        res_dict["unexpected_percent"].append(res.get("unexpected_percent"))
-        res_dict["unexpected_percent_total"].append(res.get("unexpected_percent_total"))
-        res_dict["unexpected_percent_nonmissing"].append(
-            res.get("unexpected_percent_nonmissing")
-        )
+
         res_dict["success"].append(c["success"])
+    # print(res_dict)
     results_df = pd.DataFrame.from_dict(res_dict)
     return results_df
 
@@ -323,6 +331,7 @@ def get_expecations_score(df):
     my_df = ge.from_pandas(df, expectation_suite=my_expectation_suite)
     result = my_df.validate()
     print(result)
+    statistics = result["statistics"]
     result_df = parse_ge_result(result)
 
     #   print(result_df)
@@ -332,12 +341,13 @@ def get_expecations_score(df):
         result_dict[row["cols"]] = {
             "count": row["unexpected_count"],
             "rule": row["expectation_type"],
-            "percentage": round(row["unexpected_percent"], 2),
+            "text": row["text"]
+            # "percentage": round(row["unexpected_percent"], 2),
         }
     # print(idx,row)
     score = len(issues) / len(result_df)
     #  print(result_dict)
-    return score, result_dict
+    return score, result_dict, statistics
 
 
 def get_score_for_not_match(query, varia, truth):
@@ -479,30 +489,45 @@ def make_decisions(df):
     # set the threshold value
     missing_threshold = 0.5
     correctness_threshold = 0.5
-    iqr_threshold = 0.5
+    iqr_threshold = 1.5
     expectations_threshold = 0.5
 
-    mask = df.loc["missing", :] > missing_threshold
-    # filter the row based on the boolean mask
-    filtered_row = df.loc["missing", mask]
-    # print the filtered row
-    # print(filtered_row)
+    missing_assess = df.loc["missing", :].apply(
+        lambda x: "OK" if x >= missing_threshold else "NOK" if pd.notnull(x) else np.nan
+    )
+    missing_cols = {
+        "assessment": missing_assess.to_dict(),
+        "values": df.loc["missing", :].to_dict(),
+    }
 
-    missing_cols = list(filtered_row.index)
-    mask = df.loc["correctness", :] > correctness_threshold
-    filtered_row = df.loc["correctness", mask]
-    # print(filtered_row)
+    correct_assess = df.loc["correctness", :].apply(
+        lambda x: "OK"
+        if pd.notnull(x) and x <= correctness_threshold
+        else "NOK"
+        if pd.notnull(x)
+        else np.nan
+    )
+    correctness_cols = {
+        "assessment": correct_assess.dropna().to_dict(),
+        "values": df.loc["correctness", :].dropna().to_dict(),
+    }
+    # print(correctness_cols)
 
-    correctness_cols = list(filtered_row.index)
-    mask = df.loc["iqr", :] > iqr_threshold
-    filtered_row = df.loc["iqr", mask]
-    # print(filtered_row)
-    iqr_cols = list(filtered_row.index)
-    #  print("hhhhhherrrrre")
-    #  print(df.loc["expectations", :])
+    iqr_assess = df.loc["iqr", :].apply(
+        lambda x: "OK"
+        if pd.notnull(x) and x <= iqr_threshold
+        else "NOK"
+        if pd.notnull(x)
+        else np.nan
+    )
+    iqr_cols = {
+        "assessment": iqr_assess.dropna().to_dict(),
+        "values": df.loc["iqr", :].dropna().to_dict(),
+    }
+
     mask = df.loc["expectations", :] > expectations_threshold
     filtered_row = df.loc["rule", mask]
-    print(filtered_row)
+    # print(filtered_row)
     expectations_cols = filtered_row.to_dict()
 
     return {
