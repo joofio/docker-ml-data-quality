@@ -230,11 +230,11 @@ def get_iqr_score(opt):
             u_threshold = q3 + iqr * 1.5
             # print(x)
             if x < ll_threshold or x > uu_threshold:
-                print("out of range")
+                #    print("out of range")
                 score += 2
                 result_dict[c] = 2
             elif x < l_threshold or x > u_threshold:
-                print("near range")
+                #     print("near range")
                 score += 1
                 result_dict[c] = 1
 
@@ -330,14 +330,14 @@ def get_expecations_score(df):
     # df = pd.DataFrame(opt, index=[0])
     my_df = ge.from_pandas(df, expectation_suite=my_expectation_suite)
     result = my_df.validate()
-    print(result)
+    #  print(result)
     statistics = result["statistics"]
     result_df = parse_ge_result(result)
 
     #   print(result_df)
     issues = result_df[result_df["success"] == False]
     for idx, row in issues.iterrows():
-        print("expectation", row)
+        #  print("expectation", row)
         result_dict[row["cols"]] = {
             "count": row["unexpected_count"],
             "rule": row["expectation_type"],
@@ -354,19 +354,33 @@ def get_score_for_not_match(query, varia, truth):
     probas = query.values
     rr = ss.rankdata(
         [-el for el in probas], method="max"
-    )  # Negative so we make the reverse
+    )  # Negative so we make the reverse, ranks the data
+    # print(probas, rr)
+    print("truth", truth)
 
-    pred_idx = query.values.argmax()
-    pred = query.state_names[varia][pred_idx]
-    pred_proba = probas[pred_idx]
-    pred_ranking = rr[pred_idx]
-
-    true_idx = query.state_names[varia].index(truth)
-    true_proba = probas[true_idx]
+    pred_idx = query.values.argmax()  # index do valor maximo
+    pred = query.state_names[varia][pred_idx]  # name of the vaariable selected
+    pred_proba = probas[pred_idx]  # probability of the selected value
+    pred_ranking = rr[pred_idx]  # ranking of the selected (not always 1?)
+    print(
+        "pred_idx",
+        pred_idx,
+        "pred",
+        pred,
+        "pred_proba",
+        pred_proba,
+        "pred_ranking",
+        pred_ranking,
+    )
+    true_idx = query.state_names[varia].index(truth)  # truth index
+    true_proba = probas[true_idx]  # probability of truth
     true_ranking = rr[true_idx]
     states_nr = len(query.values)
+    print("true_idx", true_idx, "true_proba", true_proba, "true_ranking", true_ranking)
     if pred_ranking != true_ranking:
         if true_ranking == states_nr:
+            # print(1 - true_proba)
+            #  print(1 - pred_proba)
             return 1 - true_proba
     return 0
 
@@ -412,13 +426,14 @@ def get_correctness_score(df, model):
         df_evidence = df_evidence.astype(str)
         df_evidence.replace("\.", "_", regex=True, inplace=True)
         truth = df_evidence[c].values[0]
-
+        #   print("true", truth)
         df_evidence.drop(columns=[c], inplace=True)  # remove on pipeline for prod?
         evidence = df_evidence.to_dict("records").copy()[0]
 
         # print(evidence)
         query = inference.query(variables=[c], evidence=evidence, show_progress=False)
         pred = query.state_names[c][query.values.argmax()]
+        # print("pred", pred, "query", query)
         matchs = get_score_for_not_match(query, c, truth)
         score += matchs
         result_dict[c] = matchs
