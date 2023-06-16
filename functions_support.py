@@ -9,8 +9,6 @@ import great_expectations as ge
 from os import getenv
 import pickle
 from preprocessing import preprocess_df
-from io import StringIO
-import sys
 
 
 GIT_COMMIT = getenv("GIT_COMMIT", None)
