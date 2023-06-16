@@ -22,8 +22,8 @@ COPY *.zip /app/
 WORKDIR /app
 RUN unzip gritbot.zip
 RUN pip install -r requirements.txt
-RUN pip uninstall numpy --yes
-RUN pip install numpy==1.20 
+#RUN pip uninstall numpy --yes
+#RUN pip install numpy==1.20 
 
 EXPOSE 5000
 CMD uvicorn app:app --host=0.0.0.0 --port=5000

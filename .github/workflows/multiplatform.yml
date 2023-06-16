@@ -1,11 +1,8 @@
 name: Docker Image CI
 
 on:
-  #release:
-  push:
-    branches: [ main ]
-  #pull_request:
-  #  branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 0'
 
 jobs:
 
@@ -20,8 +17,9 @@ jobs:
       run: |
         echo "release-version=${{ github.ref }}" >> $GITHUB_ENV
         echo "commit-sha=${{ github.sha }}" >> $GITHUB_SHA
- #   - name: Set up Docker Buildx
-  #    uses: docker/setup-buildx-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+    - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@v5
       with:
         name: jfcal/data-quality-api
@@ -31,5 +29,5 @@ jobs:
         snapshot: true
         tags: "latest"
         workdir: .
-        #buildargs: GIT_COMMIT
+        platforms: linux/amd64,linux/arm64
 
