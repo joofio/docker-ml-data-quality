@@ -347,7 +347,8 @@ def get_missing_score(opt):
     # print(opt)
     # opt = jsonable_encoder(row)
     for c in cols:
-        #  print(opt[c])
+        print(opt[c])
+        print(pd.isnull(opt[c]))
         if pd.isnull(opt[c]):
             # print("MISSSING: ", c, null_dict[c])
             score += null_dict[c] / 100
@@ -539,14 +540,25 @@ def get_correctness_score(df, model):
     return score / len(network_cols), result_dict
 
 
-def calculate_score(missing_score, correctness_score, iqr_score, expectation_score):
+def calculate_score(
+    missing_score, correctness_score, iqr_score, expectation_score, lof, outli
+):
     #   print("m", missing_score)
     #   print("c", correctness_score)
     #   print("iqr", iqr_score)
     #   print("expectations", expectation_score)
 
     return round(
-        (missing_score + correctness_score + iqr_score + expectation_score) / 4, 2
+        (
+            missing_score
+            + correctness_score
+            + iqr_score
+            + expectation_score
+            + lof
+            + outli
+        )
+        / 6,
+        2,
     )
 
 
@@ -610,7 +622,7 @@ def make_decisions(df):
     expectations_threshold = 0.5
 
     missing_assess = df.loc["missing", :].apply(
-        lambda x: "OK" if x >= missing_threshold else "NOK" if pd.notnull(x) else np.nan
+        lambda x: "OK" if x <= missing_threshold else "NOK" if pd.notnull(x) else np.nan
     )
     missing_cols = {
         "assessment": missing_assess.to_dict(),

@@ -37,13 +37,15 @@ async def get_quality_score(row: Dict[Any, Any]):
     fastapi_logger.info("called quality_check")
     fastapi_logger.info(row)
 
-    df = pd.DataFrame(row, index=[0])
-    # df = df.reindex(columns=COLS_TO_ADD)
-    df, _ = df.align(pd.DataFrame(columns=COLS_TO_ADD))
+    ndf = pd.DataFrame(row, index=[0])
+    # print(ndf)
+    df = ndf.reindex(columns=COLS_TO_ADD)
+    # print(df)
+    # df, _ = df.align(pd.DataFrame(columns=COLS_TO_ADD))
 
     # df = df.fillna(value=np.nan)
-    # print(df)
-    missing_score, missing_dict = get_missing_score(df.to_dict())
+    print(df.to_dict("records"))
+    missing_score, missing_dict = get_missing_score(df.to_dict("records")[0])
     correctness_score, correctness_dict = get_correctness_score(df, model)
     iqr_score, iqr_dict = get_iqr_score(df)  # ??
     expectations_score, expectations_dict, statistics = get_expecations_score(df)
@@ -69,8 +71,20 @@ async def get_quality_score(row: Dict[Any, Any]):
     result_df.replace(np.nan, None, inplace=True)
     # print(result_df)
     result_df.to_csv("sss.csv")
+
+    lof_score = (
+        0
+        if int(outlier_local_outlier_factor_score[0]) < 0
+        else int(outlier_local_outlier_factor_score[0])
+    )
+    print(lof_score, outlier_elliptic_score[0])
     final_score = calculate_score(
-        missing_score, correctness_score, iqr_score, expectations_score
+        missing_score,
+        correctness_score,
+        iqr_score,
+        expectations_score,
+        lof_score,
+        outlier_elliptic_score[0],
     )
     # print(datetime.datetime.now())
     decisions = make_decisions(result_df)
@@ -88,15 +102,17 @@ async def get_quality_score(row: Dict[Any, Any]):
     final_dict = {
         "meta": meta,
         "columns": decisions,
-        "row": [
-            {
-                "row_score": final_score,
-                "lof_outlier": "NOK"
-                if int(outlier_local_outlier_factor_score[0]) < 0
-                else "OK",
-                "elliptic_outlier": int(outlier_elliptic_score[0]),
-            }
-        ],
+        "scores": {
+            "final_score": final_score,
+            "missing_score": missing_score,
+            "correctness_score": correctness_score,
+            "iqr_score": iqr_score,
+            "expectations_score": expectations_score,
+            "lof_outlier": lof_score,
+            "elliptic_outlier": int(outlier_elliptic_score[0]),
+        },
     }
+
     # print(final_dict)
     return JSONResponse(content=final_dict)
+    #    missing_score, correctness_score, iqr_score, expectations_score
