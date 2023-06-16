@@ -10,7 +10,104 @@ from os import getenv
 import pickle
 from preprocessing import preprocess_df
 
-
+COLS_TO_ADD = [
+    "IDENTIFICADOR",
+    "IDADE_MATERNA",
+    "GS",
+    "PESO_INICIAL",
+    "IMC",
+    "A_PARA",
+    "A_GESTA",
+    "EUTOCITO_ANTERIOR",
+    "TIPO_GRAVIDEZ",
+    "VIGIADA",
+    "NUMERO_CONSULTAS_PRE_NATAL",
+    "VIGIADA_CENTRO_SAUDE",
+    "VIGIADA_NESTE_HOSPITAL",
+    "ESTIMATIVA_PESO_ECO_30",
+    "APRESENTACAO_30",
+    "APRESENTACAO_ADMISSAO",
+    "IDADE_GESTACIONAL_ADMISSAO",
+    "TRAB_PARTO_ENTRADA_ESPONTANEO",
+    "TIPO_PARTO",
+    "APRESENTACAO_NO_PARTO",
+    "TRAB_PARTO_NO_PARTO",
+    "SEMANAS_GESTACAO_PARTO",
+    "GRUPO_ROBSON",
+    "DATA_PARTO",
+    "PESO_ADMISSAO_INTERNAMENTO",
+    "CIGARROS",
+    "ALCOOL",
+    "ESTUPEFACIENTES",
+    "VENTOSAS_ANTERIOR",
+    "FORCEPS_ANTERIOR",
+    "CESARIANAS_ANTERIOR",
+    "CESARIANAS_MOTIVO_ANTERIOR",
+    "VIGIADA_HOSPITAL",
+    "VIGIADA_PARICULAR",
+    "ESTIMATIVA_PESO_ECO_24",
+    "ESTIMATIVA_PESO_ECO_25",
+    "ESTIMATIVA_PESO_ECO_26",
+    "ESTIMATIVA_PESO_ECO_27",
+    "ESTIMATIVA_PESO_ECO_28",
+    "ESTIMATIVA_PESO_ECO_29",
+    "ESTIMATIVA_PESO_ECO_31",
+    "ESTIMATIVA_PESO_ECO_32",
+    "ESTIMATIVA_PESO_ECO_33",
+    "ESTIMATIVA_PESO_ECO_34",
+    "ESTIMATIVA_PESO_ECO_35",
+    "ESTIMATIVA_PESO_ECO_36",
+    "ESTIMATIVA_PESO_ECO_37",
+    "ESTIMATIVA_PESO_ECO_38",
+    "ESTIMATIVA_PESO_ECO_39",
+    "ESTIMATIVA_PESO_ECO_40",
+    "ESTIMATIVA_PESO_ECO_41",
+    "ESTIMATIVA_PESO_ECO_42",
+    "APRESENTACAO_42",
+    "APRESENTACAO_41",
+    "APRESENTACAO_40",
+    "APRESENTACAO_39",
+    "APRESENTACAO_38",
+    "APRESENTACAO_37",
+    "APRESENTACAO_36",
+    "APRESENTACAO_35",
+    "APRESENTACAO_34",
+    "APRESENTACAO_33",
+    "APRESENTACAO_32",
+    "APRESENTACAO_31",
+    "APRESENTACAO_29",
+    "APRESENTACAO_28",
+    "APRESENTACAO_27",
+    "APRESENTACAO_26",
+    "APRESENTACAO_25",
+    "APRESENTACAO_24",
+    "G_TERAPEUTICA",
+    "NUM_RN",
+    "E_ALT_UT",
+    "BACIA",
+    "BISHOP_SCORE",
+    "BISHOP_CONSISTENCIA",
+    "BISHOP_DESCIDA",
+    "BISHOP_DILATACAO",
+    "BISHOP_EXTINCAO",
+    "BISHOP_POSICAO",
+    "TRAB_PARTO_ENTRADA_INDUZIDO",
+    "RPM",
+    "HIPERTENSAO_CRONICA",
+    "HIPERTENSAO_GESTACIONAL",
+    "HIPERTENSAO_PRE_ECLAMPSIA",
+    "DIABETES_GESTACIONAL",
+    "DIABETES_GESTACIONAL_DIETA",
+    "DIABETES_GESTACIONAL_INSULINA",
+    "DIABETES_GESTACIONAL_ANTIBIO",
+    "DIABETES_MATERNA",
+    "DIABETES_TIPO1",
+    "DIABETES_TIPO2",
+    "HEMATOLOGICA",
+    "RESPIRATORIA",
+    "CEREBRAL",
+    "CARDIACA",
+]
 GIT_COMMIT = getenv("GIT_COMMIT", None)
 
 
@@ -247,11 +344,12 @@ def get_missing_score(opt):
     score = 0
     null_count = 0
     result_dict = {}
+    # print(opt)
     # opt = jsonable_encoder(row)
     for c in cols:
-
+        #  print(opt[c])
         if pd.isnull(opt[c]):
-            print("MISSSING: ", c, null_dict[c])
+            # print("MISSSING: ", c, null_dict[c])
             score += null_dict[c] / 100
             null_count += 1
             result_dict[c] = null_dict[c] / 100
@@ -384,6 +482,8 @@ def get_score_for_not_match(query, varia, truth):
 
 
 def standardize_null(x, mapping):
+    # print("x", x)
+    # print(mapping)
     if x in mapping.keys():
         return mapping[x]
     if pd.isna(x):
@@ -403,6 +503,7 @@ def get_correctness_score(df, model):
     df[cat_cols] = df[cat_cols].astype(str)
     # df.to_csv("debug.csv")
     for col in df.columns:
+        #   print("col", df[col])
         df[col] = df[col].apply(standardize_null, mapping=standardizer)
     for i in cat_cols:
         df[i].replace({"None": np.nan}, inplace=True)
