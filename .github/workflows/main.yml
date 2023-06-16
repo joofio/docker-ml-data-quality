@@ -20,8 +20,8 @@ jobs:
       run: |
         echo "release-version=${{ github.ref }}" >> $GITHUB_ENV
         echo "commit-sha=${{ github.sha }}" >> $GITHUB_SHA
- #   - name: Set up Docker Buildx
-  #    uses: docker/setup-buildx-action@v2
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
     - name: Publish to Registry
       uses: elgohr/Publish-Docker-Github-Action@v5
       with:
@@ -33,4 +33,5 @@ jobs:
         tags: "latest"
         workdir: .
         #buildargs: GIT_COMMIT
+        platforms: linux/amd64,linux/arm64
 
