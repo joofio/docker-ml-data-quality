@@ -217,6 +217,8 @@ numpy==1.21.4
     #   scikit-learn
     #   scipy
     #   statsmodels
+outliertree==1.8.1.post6
+    # via -r requirements.in
 overrides==7.3.1
     # via jupyter-server
 packaging==23.1
