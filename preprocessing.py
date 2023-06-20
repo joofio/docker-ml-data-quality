@@ -304,8 +304,8 @@ def preprocess_df(df, silo):
         "obliquo": "oblíqua",
         "cefalica": "cefálica",
     }
-    for x, v in l_label_map.items():
-        print(x, "||||", v)
+    # for x, v in l_label_map.items():
+    # print(x, "||||", v)
     full_label_map = {}
     for col in map_cols:
         full_label_map[col] = l_label_map

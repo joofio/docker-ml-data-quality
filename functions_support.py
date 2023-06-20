@@ -347,8 +347,8 @@ def get_missing_score(opt):
     # print(opt)
     # opt = jsonable_encoder(row)
     for c in cols:
-        print(opt[c])
-        print(pd.isnull(opt[c]))
+        # print(opt[c])
+        #  print(pd.isnull(opt[c]))
         if pd.isnull(opt[c]):
             # print("MISSSING: ", c, null_dict[c])
             score += null_dict[c] / 100
@@ -453,27 +453,27 @@ def get_score_for_not_match(query, varia, truth):
         [-el for el in probas], method="max"
     )  # Negative so we make the reverse, ranks the data
     # print(probas, rr)
-    print("truth", truth)
+    # print("truth", truth)
 
     pred_idx = query.values.argmax()  # index do valor maximo
     pred = query.state_names[varia][pred_idx]  # name of the vaariable selected
     pred_proba = probas[pred_idx]  # probability of the selected value
     pred_ranking = rr[pred_idx]  # ranking of the selected (not always 1?)
-    print(
-        "pred_idx",
-        pred_idx,
-        "pred",
-        pred,
-        "pred_proba",
-        pred_proba,
-        "pred_ranking",
-        pred_ranking,
-    )
+    # print(
+    #     "pred_idx",
+    #     pred_idx,
+    #     "pred",
+    #     pred,
+    #     "pred_proba",
+    #     pred_proba,
+    #     "pred_ranking",
+    #     pred_ranking,
+    # )
     true_idx = query.state_names[varia].index(truth)  # truth index
     true_proba = probas[true_idx]  # probability of truth
     true_ranking = rr[true_idx]
     states_nr = len(query.values)
-    print("true_idx", true_idx, "true_proba", true_proba, "true_ranking", true_ranking)
+    # print("true_idx", true_idx, "true_proba", true_proba, "true_ranking", true_ranking)
     if pred_ranking != true_ranking:
         if true_ranking == states_nr:
             # print(1 - true_proba)
@@ -597,6 +597,7 @@ def create_response_outlier(out):
 def gritbot_decision(df):
     df_clean = preprocess_df(df, "CHSJ")
     df_clean["silo"] = "CHSJ"  # must be corrected
+    # df_clean.drop(columns=["IDENTIFICADOR"], inplace=True)
     grit_bot_score = []
 
     new_outliers = outliers_model.predict(df_clean)
