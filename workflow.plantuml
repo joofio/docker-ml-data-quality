@@ -20,9 +20,11 @@
 
 "outlier_elliptic_score" --> "outlier_local_outlier_factor_score"
 
-"outlier_local_outlier_factor_score" --> "gritbot_score"
+"outlier_local_outlier_factor_score" --> "gritbot Assessment"
 
+"outlier_elliptic_score" -->  "calculate glocal score"
 
+"outlier_local_outlier_factor_score" -->  "calculate glocal score"
 
 
 @enduml
