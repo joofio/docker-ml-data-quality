@@ -9,6 +9,14 @@ import great_expectations as ge
 from os import getenv
 import pickle
 from preprocessing import preprocess_df
+from fhir.resources.bundle import Bundle
+from fhir.resources.device import Device
+from fhir.resources.observation import Observation
+from fhir.resources.messageheader import MessageHeader
+
+import uuid
+
+FHIR_PUBLIC_LINK = "https://joofio.github.io/obs-cdss-fhir"
 
 COLS_TO_ADD = [
     "IDENTIFICADOR",
@@ -669,3 +677,121 @@ def make_decisions(df):
             "expectations": expectations_cols,
         },
     }
+
+
+def extract_from_message(bundle):
+    df_dict = {}
+    for ent in bundle.entry:
+        # print(ent.resource)
+        # print(ent.resource.resource_type)
+        if ent.resource.resource_type == "Observation":
+            col = ent.resource.code.coding[0].code
+            for k, v in ent.resource.__dict__.items():
+                # print(k, v)
+                if k.startswith("value") and v is not None:
+                    val = v
+                    if k == "valueQuantity":
+                        val = float(v.value)
+            # val = ent.resource.code.coding[0].value
+            print(col)
+            print(val)
+            df_dict[col] = val
+
+    print(df_dict)
+    return pd.DataFrame(df_dict, index=[0])
+
+
+def transform_to_fhir(mydict):
+    # print(mydict)
+    ids = [str(uuid.uuid1()) for i in range(1, 10)]
+
+    # current date and time
+    # now = datetime.datetime.now()
+    header_id = str(uuid.uuid1())
+
+    header_dict = {
+        "resourceType": "MessageHeader",
+        "id": header_id,
+        "eventCoding": {"code": "obs-dq"},
+        "destination": [{"name": "Requester"}],
+        "source": {"name": "DQ-system"},
+    }
+    msh = MessageHeader(**header_dict)
+
+    mess_dict = {
+        "resourceType": "Bundle",
+        "type": "message",
+        "meta": {
+            "profile": [FHIR_PUBLIC_LINK + "/StructureDefinition/MessageForRequest"]
+        },
+        "id": str(uuid.uuid1()),
+        "entry": [
+            {
+                "resource": msh.dict(),
+                "fullUrl": "http://localhost:8080/fhir/MessageHeader/" + header_id,
+            }
+        ],
+    }
+
+    mlmodel = {
+        "resourceType": "Device",
+        "id": "MLModelExample",
+        "meta": {
+            "profile": [
+                "https://joofio.github.io/obs-cdss-fhir/StructureDefinition/MLModel"
+            ]
+        },
+        "identifier": [{"value": "1"}],
+        "status": "active",
+        # "version": [{"value": "1", "type": {"coding": [{"display": "x"}]}}],
+    }
+    mlmodel["version"] = []
+
+    for k, v in mydict["meta"].items():
+        if k not in ["commit", "timestamp"]:
+            print(k, v)
+            mlmodel["version"].append(
+                {"value": str(v["version"]), "type": {"coding": [{"display": k}]}}
+            )
+
+    # {'meta': {'commit': None, 'IQR': {'model': 'z-score', 'version': 0.1},
+    # 'Missing': {'model': 'traindata', 'version': 0.1}, 'Correctness': {'model': 'bayes', 'version': 0.1}, 'expecations':
+    #  {'model': 'human', 'version': 0.1}, 'lof': {'model': 'lof', 'version': 0.1},
+    # 'elliptic': {'model': 'elliptic', 'version': 0.1}, 'timestamp': '20230622T120556'},
+
+    dev = Device(**mlmodel)
+    mess_dict["entry"].append(
+        {
+            "resource": dev.dict(),
+            "fullUrl": "http://localhost:8080/fhir/Device/MLModelExample",
+        }
+    )
+    for idx, x in enumerate(mydict["scores"].items()):
+        print(x)
+        obs_dict = {
+            "resourceType": "Observation",
+            "id": ids[idx],
+            "status": "final",
+            "device": {"reference": "MLModelExample"},
+            "code": {
+                "coding": [
+                    {
+                        "code": x[0],
+                        "system": "http://example.org/CodeSystem/my-cs",
+                        "display": x[0],
+                    }
+                ]
+            },
+            "valueQuantity": {"value": float(x[1])},
+        }
+        obs = Observation(**obs_dict)
+
+        mess_dict["entry"].append(
+            {
+                "resource": obs.dict(),
+                "fullUrl": "http://localhost:8080/fhir/Observation/" + ids[idx],
+            }
+        )
+    msg = Bundle(**mess_dict)
+
+    return msg.dict()
