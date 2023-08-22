@@ -18,7 +18,7 @@ import uuid
 
 FHIR_PUBLIC_LINK = "https://joofio.github.io/obs-cdss-fhir"
 
-COLS_TO_ADD = [
+COLS_TO_ADD = ["silo",
     "IDENTIFICADOR",
     "IDADE_MATERNA",
     "GS",
@@ -119,7 +119,7 @@ COLS_TO_ADD = [
 GIT_COMMIT = getenv("GIT_COMMIT", None)
 
 
-reader = XMLBIFReader("model_2.xml")
+reader = XMLBIFReader("model_total.xml")
 model = reader.get_model()
 pl = joblib.load("pipeline.sav")
 
@@ -141,6 +141,7 @@ with open("standardizer.pickle", "rb") as handle:
 
 
 ord_cols = ["A_PARA", "A_GESTA", "EUTOCITO_ANTERIOR"]
+
 int_cols = [
     "IDADE_MATERNA",
     "PESO_INICIAL",
@@ -262,31 +263,33 @@ cols = [
     "TRAB_PARTO_NO_PARTO",
     "SEMANAS_GESTACAO_PARTO",
     "GRUPO_ROBSON",
+    "silo"
 ]
 
-network_cols = [
-    "IDADE_MATERNA",
-    "PESO_INICIAL",
-    "IMC",
-    "A_PARA",
-    "A_GESTA",
-    "EUTOCITO_ANTERIOR",
-    "TIPO_GRAVIDEZ",
-    "VIGIADA",
-    "NUMERO_CONSULTAS_PRE_NATAL",
-    "VIGIADA_CENTRO_SAUDE",
-    "VIGIADA_NESTE_HOSPITAL",
-    "ESTIMATIVA_PESO_ECO_30",
-    "APRESENTACAO_30",
-    "APRESENTACAO_ADMISSAO",
-    "IDADE_GESTACIONAL_ADMISSAO",
-    "TRAB_PARTO_ENTRADA_ESPONTANEO",
-    "TIPO_PARTO",
-    "APRESENTACAO_NO_PARTO",
-    "TRAB_PARTO_NO_PARTO",
-    "SEMANAS_GESTACAO_PARTO",
-    "GRUPO_ROBSON",
-]
+network_cols = ['IDADE_MATERNA',
+ 'GS',
+ 'PESO_INICIAL',
+ 'IMC',
+ 'A_PARA',
+ 'A_GESTA',
+ 'EUTOCITO_ANTERIOR',
+ 'VENTOSAS_ANTERIOR',
+ 'CESARIANAS_ANTERIOR',
+ 'TIPO_GRAVIDEZ',
+ 'VIGIADA',
+ 'NUMERO_CONSULTAS_PRE_NATAL',
+ 'VIGIADA_PARICULAR',
+ 'VIGIADA_CENTRO_SAUDE',
+ 'VIGIADA_NESTE_HOSPITAL',
+ 'APRESENTACAO_ADMISSAO',
+ 'IDADE_GESTACIONAL_ADMISSAO',
+ 'TRAB_PARTO_ENTRADA_ESPONTANEO',
+ 'TIPO_PARTO',
+ 'APRESENTACAO_NO_PARTO',
+ 'TRAB_PARTO_NO_PARTO',
+ 'SEMANAS_GESTACAO_PARTO',
+ 'GRUPO_ROBSON',
+ 'silo']
 
 outlier_cols = [
     "IDADE_MATERNA",
@@ -467,16 +470,20 @@ def get_score_for_not_match(query, varia, truth):
     pred = query.state_names[varia][pred_idx]  # name of the vaariable selected
     pred_proba = probas[pred_idx]  # probability of the selected value
     pred_ranking = rr[pred_idx]  # ranking of the selected (not always 1?)
-    # print(
-    #     "pred_idx",
-    #     pred_idx,
-    #     "pred",
-    #     pred,
-    #     "pred_proba",
-    #     pred_proba,
-    #     "pred_ranking",
-    #     pred_ranking,
-    # )
+    if str(pred_proba)=="nan":
+        print(probas)
+        print("eror on a column.....")
+        print(
+            "pred_idx",
+            pred_idx,
+            "pred",
+            pred,
+            "pred_proba",
+            pred_proba,
+            "pred_ranking",
+            pred_ranking,
+        )
+        return 0
     true_idx = query.state_names[varia].index(truth)  # truth index
     true_proba = probas[true_idx]  # probability of truth
     true_ranking = rr[true_idx]
@@ -507,28 +514,35 @@ def get_correctness_score(df, model):
     # opt = jsonable_encoder(row)
     result_dict = {}
     # df = pd.DataFrame(opt, index=[0])
+    df=df[network_cols]
+
+    net_cat_cols=[col for col in cat_cols if col  in df.columns ]
+    net_int_cols=[col for col in int_cols if col  in df.columns ]
+    net_ord_cols=[col for col in ord_cols if col  in df.columns ]
 
     # print(df)
-    df[cat_cols] = df[cat_cols].astype(str)
+    df[net_cat_cols] = df[net_cat_cols].astype(str)
     # df.to_csv("debug.csv")
     for col in df.columns:
         #   print("col", df[col])
         df[col] = df[col].apply(standardize_null, mapping=standardizer)
-    for i in cat_cols:
+    for i in net_cat_cols:
         df[i].replace({"None": np.nan}, inplace=True)
         df[i] = df[i].astype(str)
-    for c in int_cols:
+    for c in net_int_cols:
         df[c].replace({"None": np.nan}, inplace=True)
         df[c] = np.where(pd.isnull(df[c]), df[c], df[c].astype(float))
-    for c in ord_cols:
+    for c in net_ord_cols:
         df[c].replace({"None": np.nan}, inplace=True)
-
         df[c] = np.where(pd.isnull(df[c]), df[c], df[c].astype("Int64"))
+    #print(df)
+    df.to_csv("tt.csv")
+
     x_treated = pl.transform(df)
     # print(opt)
     # print(x_treated)
     for c in network_cols:
-        # print(c)
+        #print(c)
 
         df_evidence = transfrom_array_to_df_onehot(pl, x_treated)[network_cols]
         df_evidence = df_evidence.astype(str)
@@ -540,9 +554,10 @@ def get_correctness_score(df, model):
 
         # print(evidence)
         query = inference.query(variables=[c], evidence=evidence, show_progress=False)
-        pred = query.state_names[c][query.values.argmax()]
-        # print("pred", pred, "query", query)
+      #  pred = query.state_names[c][query.values.argmax()]
+      #  print("pred", pred, "query", query)
         matchs = get_score_for_not_match(query, c, truth)
+      #  print(matchs)
         score += matchs
         result_dict[c] = matchs
     return score / len(network_cols), result_dict
@@ -571,22 +586,25 @@ def calculate_score(
 
 
 def get_outlier_elliptic_score(df):
-    # print(df)
-    df[cat_cols] = df[cat_cols].astype(str)
-    # print(df.to_dict())
-    x_treated = pl.transform(df[outlier_cols])
-    # print(opt)
-    return ee.predict(x_treated)
-
+    try:# print(df)
+        df[cat_cols] = df[cat_cols].astype(str)
+        # print(df.to_dict())
+        x_treated = pl.transform(df[outlier_cols])
+        # print(opt)
+        return ee.predict(x_treated)
+    except:
+        return [[0][0]]
 
 def get_outlier_local_outlier_factor_score(df):
-    # print(df)
-    df[cat_cols] = df[cat_cols].astype(str)
-    # print(df.to_dict())
-    x_treated = pl.transform(df[outlier_cols])
-    # print(opt)
-    return lof.predict(x_treated)
-
+    try:
+        # print(df)
+        df[cat_cols] = df[cat_cols].astype(str)
+        # print(df.to_dict())
+        x_treated = pl.transform(df[outlier_cols])
+        # print(opt)
+        return lof.predict(x_treated)
+    except:
+        return [[0][0]]
 
 def create_response_outlier(out):
     results = []
@@ -795,3 +813,70 @@ def transform_to_fhir(mydict):
     msg = Bundle(**mess_dict)
 
     return msg.dict()
+
+
+
+def quality_score(row):
+    """
+    gets quality score- called by api
+    """
+
+    ndf = pd.DataFrame(row, index=[0])
+    # print(ndf)
+    df = ndf.reindex(columns=COLS_TO_ADD)
+    # print(df)
+    # df, _ = df.align(pd.DataFrame(columns=COLS_TO_ADD))
+
+    # df = df.fillna(value=np.nan)
+    # print(df.to_dict("records"))
+    missing_score, missing_dict = get_missing_score(df.to_dict("records")[0])
+    correctness_score, correctness_dict = get_correctness_score(df, model)
+    iqr_score, iqr_dict = get_iqr_score(df)  # ??
+    expectations_score, expectations_dict, statistics = get_expecations_score(df)
+    outlier_elliptic_score = get_outlier_elliptic_score(df)
+    outlier_local_outlier_factor_score = get_outlier_local_outlier_factor_score(df)
+    # print(outlier_elliptic_score, outlier_local_outlier_factor_score)
+    # print(df)
+    gritbot_score = gritbot_decision(df)
+
+    missing_df = pd.DataFrame(missing_dict, index=[0])
+    # print(missing_df)
+    correctness_df = pd.DataFrame(correctness_dict, index=[0])
+    iqr_df = pd.DataFrame(iqr_dict, index=[0])
+    expectations_df = pd.DataFrame(expectations_dict)
+    #  print(expectations_df)
+    if len(expectations_df) > 0:
+        expectations_df = expectations_df.loc[["count", "text"], :]
+    else:
+        expectations_df = pd.DataFrame({c: [np.nan, np.nan] for c in df.columns})
+    # print(expectations_df)
+    # print(expectations_dict)
+    result_df = pd.concat([missing_df, correctness_df, iqr_df, expectations_df])
+    result_df.index = ["missing", "correctness", "iqr", "expectations", "rule"]
+    result_df.replace(np.nan, None, inplace=True)
+    # print(result_df)
+    # result_df.to_csv("sss.csv")
+
+    lof_score = (
+        0
+        if int(outlier_local_outlier_factor_score[0]) < 0
+        else int(outlier_local_outlier_factor_score[0])
+    )
+    ee_score = (
+        0 if int(outlier_elliptic_score[0]) > 0 else 1
+    )  # original Predict labels (1 inlier, -1 outlier) of X according to fitted model.
+    #   print(lof_score, outlier_elliptic_score[0])
+    final_score = calculate_score(
+        missing_score,
+        correctness_score,
+        iqr_score,
+        expectations_score,
+        lof_score,
+        ee_score,
+    )
+    # print(datetime.datetime.now())
+    print(result_df)
+    decisions = make_decisions(result_df)
+    decisions["correctness_cols"]["gritbot"] = gritbot_score
+
+    return final_score,decisions,lof_score,ee_score,missing_score,correctness_score,iqr_score,expectations_score
