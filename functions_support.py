@@ -122,7 +122,7 @@ GIT_COMMIT = getenv("GIT_COMMIT", None)
 reader = XMLBIFReader("model_total.xml")
 model = reader.get_model()
 pl = joblib.load("pipeline.sav")
-
+outpl=joblib.load("outlier_pipeline.sav")
 ee = joblib.load("EllipticEnvelope.sav")
 lof = joblib.load("LocalOutlierFactor.sav")
 my_expectation_suite = json.load(open("my_expectation_file.json"))
@@ -291,30 +291,14 @@ network_cols = ['IDADE_MATERNA',
  'GRUPO_ROBSON',
  'silo']
 
-outlier_cols = [
-    "IDADE_MATERNA",
-    "GS",
-    "PESO_INICIAL",
-    "IMC",
-    "A_PARA",
-    "A_GESTA",
-    "EUTOCITO_ANTERIOR",
-    "TIPO_GRAVIDEZ",
-    "VIGIADA",
-    "NUMERO_CONSULTAS_PRE_NATAL",
-    "VIGIADA_CENTRO_SAUDE",
-    "VIGIADA_NESTE_HOSPITAL",
-    "ESTIMATIVA_PESO_ECO_30",
-    "APRESENTACAO_30",
-    "APRESENTACAO_ADMISSAO",
-    "IDADE_GESTACIONAL_ADMISSAO",
-    "TRAB_PARTO_ENTRADA_ESPONTANEO",
-    "TIPO_PARTO",
-    "APRESENTACAO_NO_PARTO",
-    "TRAB_PARTO_NO_PARTO",
-    "SEMANAS_GESTACAO_PARTO",
-    "GRUPO_ROBSON",
-]
+outlier_cols = ['IDADE_MATERNA', 'GS', 'PESO_INICIAL', 'IMC', 'A_PARA', 'A_GESTA',
+       'EUTOCITO_ANTERIOR', 'VENTOSAS_ANTERIOR', 'CESARIANAS_ANTERIOR',
+       'TIPO_GRAVIDEZ', 'VIGIADA', 'NUMERO_CONSULTAS_PRE_NATAL',
+       'VIGIADA_PARICULAR', 'VIGIADA_CENTRO_SAUDE', 'VIGIADA_NESTE_HOSPITAL',
+       'APRESENTACAO_ADMISSAO', 'IDADE_GESTACIONAL_ADMISSAO',
+       'TRAB_PARTO_ENTRADA_ESPONTANEO', 'TIPO_PARTO', 'APRESENTACAO_NO_PARTO',
+       'TRAB_PARTO_NO_PARTO', 'SEMANAS_GESTACAO_PARTO', 'GRUPO_ROBSON',
+       'silo']
 
 
 def get_iqr_score(opt):
@@ -586,25 +570,33 @@ def calculate_score(
 
 
 def get_outlier_elliptic_score(df):
-    try:# print(df)
-        df[cat_cols] = df[cat_cols].astype(str)
-        # print(df.to_dict())
-        x_treated = pl.transform(df[outlier_cols])
-        # print(opt)
-        return ee.predict(x_treated)
-    except:
-        return [[0][0]]
+    #try:# print(df)
+    for col in df.columns:
+        #   print("col", df[col])
+        df[col] = df[col].apply(standardize_null, mapping=standardizer)
+    df[cat_cols] = df[cat_cols].astype(str)
+    
+    # print(df.to_dict())
+    x_treated = outpl.transform(df[outlier_cols])
+    # print(opt)
+    return ee.predict(x_treated)
+    #except:
+       # print("error on get_outlier_elliptic_score")
+     #   return [[0][0]]
 
 def get_outlier_local_outlier_factor_score(df):
-    try:
-        # print(df)
-        df[cat_cols] = df[cat_cols].astype(str)
-        # print(df.to_dict())
-        x_treated = pl.transform(df[outlier_cols])
-        # print(opt)
-        return lof.predict(x_treated)
-    except:
-        return [[0][0]]
+    for col in df.columns:
+        #   print("col", df[col])
+        df[col] = df[col].apply(standardize_null, mapping=standardizer)
+    df[cat_cols] = df[cat_cols].astype(str)
+    # print(df.to_dict())
+    x_treated = outpl.transform(df[outlier_cols])
+    # print(opt)
+    return lof.predict(x_treated)
+   # except:
+   #     print("error on get_outlier_local_outlier_factor_score")
+
+      #  return [[0][0]]
 
 def create_response_outlier(out):
     results = []
@@ -816,12 +808,12 @@ def transform_to_fhir(mydict):
 
 
 
-def quality_score(row):
+def quality_score(ndf):
     """
     gets quality score- called by api
     """
 
-    ndf = pd.DataFrame(row, index=[0])
+  
     # print(ndf)
     df = ndf.reindex(columns=COLS_TO_ADD)
     # print(df)

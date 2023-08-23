@@ -70,8 +70,8 @@ async def get_quality_score(row: Dict[Any, Any]):
     fastapi_logger.info("called quality_check")
     fastapi_logger.info(row)
 
-
-    final_score,decisions,lof_score,ee_score,missing_score,correctness_score,iqr_score,expectations_score=quality_score(row)
+    ndf = pd.DataFrame(row, index=[0])
+    final_score,decisions,lof_score,ee_score,missing_score,correctness_score,iqr_score,expectations_score=quality_score(ndf)
     print(final_score,decisions,lof_score,ee_score,missing_score,correctness_score,iqr_score,expectations_score)
     meta = {
         "commit": GIT_COMMIT,
@@ -119,63 +119,8 @@ async def get_quality_score_fhir(row: Dict[Any, Any]):
     fastapi_logger.info(row)
     ndf = extract_from_message(bundle)
 
-    # ndf = pd.DataFrame(row, index=[0])
-    # print(ndf)
-    df = ndf.reindex(columns=COLS_TO_ADD)
 
-    # print(df)
-    # df, _ = df.align(pd.DataFrame(columns=COLS_TO_ADD))
-
-    # df = df.fillna(value=np.nan)
-    # print(df.to_dict("records"))
-    missing_score, missing_dict = get_missing_score(df.to_dict("records")[0])
-    correctness_score, correctness_dict = get_correctness_score(df, model)
-    iqr_score, iqr_dict = get_iqr_score(df)  # ??
-    expectations_score, expectations_dict, statistics = get_expecations_score(df)
-    outlier_elliptic_score = get_outlier_elliptic_score(df)
-    outlier_local_outlier_factor_score = get_outlier_local_outlier_factor_score(df)
-    # print(outlier_elliptic_score, outlier_local_outlier_factor_score)
-    # print(df)
-    gritbot_score = gritbot_decision(df)
-
-    missing_df = pd.DataFrame(missing_dict, index=[0])
-    # print(missing_df)
-    correctness_df = pd.DataFrame(correctness_dict, index=[0])
-    iqr_df = pd.DataFrame(iqr_dict, index=[0])
-    expectations_df = pd.DataFrame(expectations_dict)
-    #  print(expectations_df)
-    if len(expectations_df) > 0:
-        expectations_df = expectations_df.loc[["count", "text"], :]
-    else:
-        expectations_df = pd.DataFrame({c: [np.nan, np.nan] for c in df.columns})
-    # print(expectations_df)
-    # print(expectations_dict)
-    result_df = pd.concat([missing_df, correctness_df, iqr_df, expectations_df])
-    result_df.index = ["missing", "correctness", "iqr", "expectations", "rule"]
-    result_df.replace(np.nan, None, inplace=True)
-    # print(result_df)
-    # result_df.to_csv("sss.csv")
-
-    lof_score = (
-        0
-        if int(outlier_local_outlier_factor_score[0]) < 0
-        else int(outlier_local_outlier_factor_score[0])
-    )
-    ee_score = (
-        0 if int(outlier_elliptic_score[0]) > 0 else 1
-    )  # original Predict labels (1 inlier, -1 outlier) of X according to fitted model.
-    #   print(lof_score, outlier_elliptic_score[0])
-    final_score = calculate_score(
-        missing_score,
-        correctness_score,
-        iqr_score,
-        expectations_score,
-        lof_score,
-        ee_score,
-    )
-    # print(datetime.datetime.now())
-    decisions = make_decisions(result_df)
-    decisions["correctness_cols"]["gritbot"] = gritbot_score
+    final_score,decisions,lof_score,ee_score,missing_score,correctness_score,iqr_score,expectations_score=quality_score(ndf)
     meta = {
         "commit": GIT_COMMIT,
         "IQR": {"model": "z-score", "version": 0.1},
