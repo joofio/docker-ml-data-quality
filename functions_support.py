@@ -158,6 +158,7 @@ cat_cols = [
     "TRAB_PARTO_NO_PARTO",
     "GRUPO_ROBSON",
     "VIGIADA_NESTE_HOSPITAL",
+    "VIGIADA_PARICULAR",
     "VIGIADA",
     "APRESENTACAO_ADMISSAO",
     "APRESENTACAO_NO_PARTO",
@@ -505,21 +506,21 @@ def get_correctness_score(df, model):
     net_ord_cols=[col for col in ord_cols if col  in df.columns ]
 
     # print(df)
-    df[net_cat_cols] = df[net_cat_cols].astype(str)
+    df.loc[:,net_cat_cols] = df.loc[:,net_cat_cols].astype(str)
     # df.to_csv("debug.csv")
     for col in df.columns:
         #   print("col", df[col])
-        df[col] = df[col].apply(standardize_null, mapping=standardizer)
-    for i in net_cat_cols:
-        df[i].replace({"None": np.nan}, inplace=True)
-        df[i] = df[i].astype(str)
-    for c in net_int_cols:
-        df[c].replace({"None": np.nan}, inplace=True)
-        df[c] = np.where(pd.isnull(df[c]), df[c], df[c].astype(float))
-    for c in net_ord_cols:
-        df[c].replace({"None": np.nan}, inplace=True)
-        df[c] = np.where(pd.isnull(df[c]), df[c], df[c].astype("Int64"))
-    #print(df)
+        df.loc[:,col] = df.loc[:,col].apply(standardize_null, mapping=standardizer)
+   # for i in net_cat_cols:
+   #     df[i].replace({"None": np.nan}, inplace=True)
+   #     df[i] = df[i].astype(str)
+   # for c in net_int_cols:
+  #      df[c].replace({"None": np.nan}, inplace=True)
+   #     df[c] = np.where(pd.isnull(df[c]), df[c], df[c].astype(float))
+   # for c in net_ord_cols:
+   #     df[c].replace({"None": np.nan}, inplace=True)
+   #     df[c] = np.where(pd.isnull(df[c]), df[c], df[c].astype("Int64"))
+   # print(df)
     df.to_csv("tt.csv")
 
     x_treated = pl.transform(df)
@@ -579,7 +580,9 @@ def get_outlier_elliptic_score(df):
     # print(df.to_dict())
     x_treated = outpl.transform(df[outlier_cols])
     # print(opt)
-    return ee.predict(x_treated)
+    X_treated_df=pd.DataFrame(x_treated,columns=outpl.get_feature_names_out())
+    X_treated_df.columns=[l.replace("num__","").replace("cat__","") for l in X_treated_df.columns]
+    return ee.predict(X_treated_df)
     #except:
        # print("error on get_outlier_elliptic_score")
      #   return [[0][0]]
@@ -592,11 +595,9 @@ def get_outlier_local_outlier_factor_score(df):
     # print(df.to_dict())
     x_treated = outpl.transform(df[outlier_cols])
     # print(opt)
-    return lof.predict(x_treated)
-   # except:
-   #     print("error on get_outlier_local_outlier_factor_score")
-
-      #  return [[0][0]]
+    X_treated_df=pd.DataFrame(x_treated,columns=outpl.get_feature_names_out())
+    X_treated_df.columns=[l.replace("num__","").replace("cat__","") for l in X_treated_df.columns]
+    return lof.predict(X_treated_df)
 
 def create_response_outlier(out):
     results = []
@@ -867,7 +868,7 @@ def quality_score(ndf):
         ee_score,
     )
     # print(datetime.datetime.now())
-    print(result_df)
+   # print(result_df)
     decisions = make_decisions(result_df)
     decisions["correctness_cols"]["gritbot"] = gritbot_score
 
