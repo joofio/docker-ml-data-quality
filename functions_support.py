@@ -502,15 +502,15 @@ def get_correctness_score(df, model):
     df=df[network_cols]
 
     net_cat_cols=[col for col in cat_cols if col  in df.columns ]
-    net_int_cols=[col for col in int_cols if col  in df.columns ]
-    net_ord_cols=[col for col in ord_cols if col  in df.columns ]
-
-    # print(df)
-    df.loc[:,net_cat_cols] = df.loc[:,net_cat_cols].astype(str)
-    # df.to_csv("debug.csv")
+   # net_int_cols=[col for col in int_cols if col  in df.columns ]
+  #  net_ord_cols=[col for col in ord_cols if col  in df.columns ]
     for col in df.columns:
         #   print("col", df[col])
         df.loc[:,col] = df.loc[:,col].apply(standardize_null, mapping=standardizer)
+    # print(df)
+    df.loc[:,net_cat_cols] = df.loc[:,net_cat_cols].astype(str)
+    # df.to_csv("debug.csv")
+
    # for i in net_cat_cols:
    #     df[i].replace({"None": np.nan}, inplace=True)
    #     df[i] = df[i].astype(str)
