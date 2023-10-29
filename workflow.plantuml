@@ -20,7 +20,7 @@
 
 "outlier_elliptic_score" --> "outlier_local_outlier_factor_score"
 
-"outlier_local_outlier_factor_score" --> "gritbot Assessment"
+"outlier_local_outlier_factor_score" --> "Final Assessment"
 
 "outlier_elliptic_score" -->  "calculate glocal score"
 
