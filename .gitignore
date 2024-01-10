@@ -133,3 +133,5 @@ dmypy.json
 gritbot.sav 
 #big file
 *.jar
+
+.DS_Store
